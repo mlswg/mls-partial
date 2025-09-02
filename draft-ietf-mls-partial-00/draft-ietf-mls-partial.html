@@ -1,0 +1,2251 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>Partial MLS</title>
+<meta content="Franziskus Kiefer" name="author">
+<meta content="Karthikeyan Bhargavan" name="author">
+<meta content="Richard L. Barnes" name="author">
+<meta content="Joël Alwen" name="author">
+<meta content="Marta Mularczyk" name="author">
+<meta content="
+       The Messaging Layer Security (MLS) protocol provides efficient asynchronous
+group key establishment for large groups with up to thousands of clients. In
+MLS, any member can commit a change to the group, and consequently, all members
+must download, validate, and maintain the full group state, which can incur a
+significant communication and computational costs, especially when joining a
+group. This document defines an MLS extension to support &quot;partial MLS clients&quot; that don't
+undertake these costs. A partial client cannot commit changes to the group, and
+only has partial authentication information for the other members of the group,
+but is otherwise able to participate in the group. In exchange for these
+limitations, a partial MLS client can participate in an MLS group with significantly
+lower requirements in terms of download, memory, and processing. 
+    " name="description">
+<meta content="xml2rfc 3.30.0" name="generator">
+<meta content="Internet-Draft" name="keyword">
+<meta content="draft-ietf-mls-partial-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.30.0
+    Python 3.12.11
+    ConfigArgParse 1.7
+    google-i18n-address 3.1.1
+    intervaltree 3.1.0
+    Jinja2 3.1.6
+    lxml 5.3.1
+    platformdirs 4.3.8
+    pycountry 24.6.1
+    PyYAML 6.0.2
+    requests 2.32.4
+    setuptools 80.9.0
+    wcwidth 0.2.13
+-->
+<link href="draft-ietf-mls-partial.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 680;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1#title {
+  font-size: 32px;
+  line-height: 40px;
+  clear: both;
+}
+h1#title, h1#rfcnum {
+  margin: 1.5em 0 0.2em;
+}
+h1#rfcnum + h1#title {
+  margin: 0.2em 0;
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+}
+#abstract+p code, #abstract+p samp, #abstract+p tt {
+  font-size: 16px;
+  line-height: 0;
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignRight.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignRight {
+  margin: 1em 0;
+}
+.alignRight > *:first-child {
+  border: none;
+  margin: 0;
+  float: right;
+  clear: both;
+}
+.alignRight > *:nth-child(2) {
+  clear: both;
+  display: block;
+  border: none;
+}
+svg {
+  display: block;
+}
+/* font-family isn't space-separated, but =~ will have to do */
+svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
+  font-family: var(--font-mono);
+}
+.alignCenter.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignCenter.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignCenter {
+  margin: 1em 0;
+}
+.alignCenter > *:first-child {
+  border: none;
+  /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+     support flexbox yet.
+  */
+  display: table;
+  margin: 0 auto;
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+  & li {
+    margin-top: 0.5em;
+  }
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+    }
+  }
+  &.olPercent > dt {
+    float: none;
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+}
+dl:not(.dlNewline) > dt {
+  float: left;
+  margin-right: 2ch;
+  min-width: 8ch;
+}
+dl > dd {
+  margin-bottom: .8em;
+  margin-left: var(--indent) !important; /* stupid element overrides */
+  min-height: 2ex;
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a, a[href].selfRef:hover {
+  text-decoration: none;
+}
+a[href] {
+  color: var(--link-color);
+}
+a[href].selfRef, .iref + a[href].internal {
+  color: var(--text-color);
+}
+a[href]:hover {
+  text-decoration: underline;
+}
+a[href].selfRef:hover {
+  background-color: var(--highlight-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+}
+figure blockquote {
+  margin: 0.8em 0.4em 0.4em;
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+  caption-side: bottom;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) p {
+    margin: -2px 0;
+    max-height: 0;
+    transition: max-height 2s ease, margin 0.5s ease 0.5s;
+    overflow: hidden;
+  }
+  :is(#status-of-memo, #copyright):hover p,
+  :is(#status-of-memo, #copyright) h2:target ~ p {
+    margin: 0.5em 0;
+    max-height: 500px;
+    overflow: auto;
+  }
+  pre, svg {
+    display: inline-block;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+}
+table.right {
+  margin-left: auto;
+}
+table.center {
+  margin-left: auto;
+  margin-right: auto;
+}
+table.left {
+  margin-right: auto;
+}
+table .text-left {
+  text-align: left;
+}
+table .text-center {
+  text-align: center;
+}
+table .text-right {
+  text-align: right;
+}
+
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+table caption {
+  margin: 0;
+  padding: 3px 0 3px 1em;
+}
+table p {
+  margin: 0;
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
+}
+@media not print {
+  :hover > a.pilcrow {
+    opacity: 1;
+  }
+  a.pilcrow[href]:hover {
+    color: var(--pilcrow-strong);
+    background-color: transparent;
+  }
+}
+@media print {
+  a.pilcrow {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+}
+.docInfo .prepared {
+  float: right;
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
+}
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
+}
+
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses > section {
+    column-count: 2;
+    column-gap: 20px;
+  }
+  #authors-addresses > section > h2 {
+    column-span: all;
+  }
+  /* hack for break-inside: avoid-column */
+  #authors-addresses address {
+    display: inline-block;
+    break-inside: avoid-column;
+  }
+}
+
+/* Comments */
+.rfcEditorRemove p:first-of-type {
+  font-style: italic;
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+
+@media screen {
+  #toc nav {
+    font-family: var(--font-title);
+    font-weight: 360;
+    & > ul { margin-bottom: 2em; }
+    & ul {
+      margin: 0 0 0 4px;
+      & :is(p, li) {
+        margin: 2px 0;
+      }
+    }
+  }
+  #toc a.toplink {
+    float: right;
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 1px 0 0 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 2px 0 2px 6px;
+    padding-right: 1em;
+    font-size: 18px;
+    line-height: 24px;
+    min-width: 190px;
+    text-align: right;
+    background-color: #444;
+    color: white;
+    cursor: pointer;
+    &::before { /* css hamburger */
+      float: right;
+      position: relative;
+      width: 1em;
+      height: 1px;
+      left: -164px;
+      margin: 8px 0 0 0;
+      background: white none repeat scroll 0 0;
+      box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+      content: "";
+    }
+  }
+  #toc nav {
+    display: none;
+    background-color: var(--background-color);
+    padding: 0.5em 1em 1em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    height: calc(100vh - 48px);
+    border-left: 1px solid #ddd;
+  }
+  #toc.active {
+    opacity: 1;
+    & nav { display: block; }
+  }
+  /* Make the collapsed ToC header render white on gray also when it's a link */
+  #toc h2 a,
+  #toc h2 a:is(:link, :focus, :hover),
+  #toc a.toplink,
+  #toc a.toplink:hover {
+    color: white;
+    background-color: #444;
+    text-decoration: none;
+  }
+  #toc a.toplink {
+    margin: 2px 0.5em 0;
+  }
+}
+
+/* TOC layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 0.25em 1em 1em 0;
+  }
+  #toc nav {
+    display: block;
+    height: calc(90vh - 84px);
+    bottom: 0;
+    padding: 0.5em 0 2em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+  #toc a.toplink {
+    margin: 8px 0.5em 0;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc, #n-introduction {
+    page-break-before: always;
+  }
+  #toc {
+    border-top: none;
+    padding-top: 0;
+  }
+  figure, pre, .vcard {
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  :is(h2, h3, h4, h5, h6)+*, dd {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg :is([stroke="black"], [stroke^="#000"]) {
+  stroke: var(--text-color);
+}
+svg :is([stroke="white"], [stroke^="#fff"]) {
+  stroke: var(--background-color);
+}
+svg :is([fill="black"], [fill^="#000"], :not([fill])) {
+  fill: var(--text-color);
+}
+svg :is([fill="white"], [fill^="#fff"]) {
+  fill: var(--background-color);
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">Partial MLS</td>
+<td class="right">September 2025</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Kiefer, et al.</td>
+<td class="center">Expires 6 March 2026</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Network Working Group</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-ietf-mls-partial-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2025-09-02" class="published">2 September 2025</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Informational</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2026-03-06">6 March 2026</time></dd>
+<dt class="label-authors">Authors:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">F. Kiefer</div>
+<div class="org">Cryspen</div>
+</div>
+<div class="author">
+      <div class="author-name">K. Bhargavan</div>
+<div class="org">Cryspen</div>
+</div>
+<div class="author">
+      <div class="author-name">R. L. Barnes</div>
+<div class="org">Cisco</div>
+</div>
+<div class="author">
+      <div class="author-name">J. Alwen</div>
+<div class="org">AWS Wickr</div>
+</div>
+<div class="author">
+      <div class="author-name">M. Mularczyk</div>
+<div class="org">AWS Wickr</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">Partial MLS</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">The Messaging Layer Security (MLS) protocol provides efficient asynchronous
+group key establishment for large groups with up to thousands of clients. In
+MLS, any member can commit a change to the group, and consequently, all members
+must download, validate, and maintain the full group state, which can incur a
+significant communication and computational costs, especially when joining a
+group. This document defines an MLS extension to support "partial MLS clients" that don't
+undertake these costs. A partial client cannot commit changes to the group, and
+only has partial authentication information for the other members of the group,
+but is otherwise able to participate in the group. In exchange for these
+limitations, a partial MLS client can participate in an MLS group with significantly
+lower requirements in terms of download, memory, and processing.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-about-this-document">
+<a href="#name-about-this-document" class="section-name selfRef">About This Document</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">
+        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-ietf-mls-partial/">https://datatracker.ietf.org/doc/draft-ietf-mls-partial/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">
+        Discussion of this document takes place on the
+        MLS WG Working Group mailing list (<span><a href="mailto:mls@ietf.org">mailto:mls@ietf.org</a></span>),
+        which is archived at <span><a href="https://mailarchive.ietf.org/arch/browse/mls/">https://mailarchive.ietf.org/arch/browse/mls/</a></span>.
+        Subscribe at <span><a href="https://www.ietf.org/mailman/listinfo/mls/">https://www.ietf.org/mailman/listinfo/mls/</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+<p id="section-note.1-4">Source for this draft and an issue tracker can be found at
+        <span><a href="https://github.com/mlswg/mls-partial">https://github.com/mlswg/mls-partial</a></span>.<a href="#section-note.1-4" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 6 March 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2025 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-terminology" class="internal xref">Terminology</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-use-cases" class="internal xref">Use Cases</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
+                <p id="section-toc.1-1.3.2.1.1" class="keepWithNext"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-large-meetings-webinars" class="internal xref">Large Meetings / Webinars</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-broadcast-sessions" class="internal xref">Broadcast sessions</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-protocol-overview" class="internal xref">Protocol Overview</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-upgrading-and-downgrading" class="internal xref">Upgrading and Downgrading</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-membership-proofs-and-parti" class="internal xref">Membership Proofs and Partial Trees</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-sender-authenticated-messag" class="internal xref">Sender-Authenticated Messages</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-joining-via-annotated-welco" class="internal xref">Joining via Annotated Welcome</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-joining-via-external-commit" class="internal xref">Joining via External Commit</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-annotated-commit" class="internal xref">Annotated Commit</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-application-messages" class="internal xref">Application Messages</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#section-12" class="auto internal xref">12</a>. <a href="#name-operational-considerations" class="internal xref">Operational Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
+            <p id="section-toc.1-1.13.1"><a href="#section-13" class="auto internal xref">13</a>. <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.1">
+                <p id="section-toc.1-1.13.2.1.1"><a href="#section-13.1" class="auto internal xref">13.1</a>.  <a href="#name-metadata-privacy" class="internal xref">Metadata Privacy</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14">
+            <p id="section-toc.1-1.14.1"><a href="#section-14" class="auto internal xref">14</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15">
+            <p id="section-toc.1-1.15.1"><a href="#section-15" class="auto internal xref">15</a>. <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.1">
+                <p id="section-toc.1-1.15.2.1.1"><a href="#section-15.1" class="auto internal xref">15.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.2">
+                <p id="section-toc.1-1.15.2.2.1"><a href="#section-15.2" class="auto internal xref">15.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16">
+            <p id="section-toc.1-1.16.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-known-issues" class="internal xref">Known Issues</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.17">
+            <p id="section-toc.1-1.17.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.18">
+            <p id="section-toc.1-1.18.1"><a href="#appendix-C" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">The Messaging Layer Security protocol <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span> enables continuous group
+authenticated key exchange among a group of clients. The design of MLS requires
+all members to download, validate, and maintain the full MLS tree, including
+validating the credentials and signatures of all members. The size of the MLS
+tree is linear in the size of the group. Consequently, the MLS design results in
+a performance bottleneck for new members seeking to join a large group, and
+significant storage and memory requirements once the member has joined.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">This document defines an extension to MLS to allow for "partial clients" --
+clients that do not download, validate, or maintain the entire ratchet tree for
+the group. On the one hand, this property allows a partial client to
+participate in the group with much significantly lower communication and
+computation complexity. On the other hand, without the full ratchet tree, the
+partial client cannot create Commit messages to put changes to the group into
+effect. Partial clients also only have authentication information for the parts
+of the tree they download, not the whole group.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">This document does not change the core logic of MLS, including: The structure of
+the ratchet tree and its associated algorithms, the key schedule, the secret
+tree, and application message protection. The messages sent and received by
+normal clients in the course of an MLS session are likewise unchanged. With
+proper modifications to the MLS Delivery Service, standard MLS clients can
+participate in a group with partial clients without any modification.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">The only modifications this document makes are to the local state stored at
+partial clients, namely the component of MLS that manages, synchronizes, and
+authenticates the public group state. We also defines some "annotations" that
+need to be appended to group messages so that they can be processed by partial
+clients. Partial clients effectively run normal MLS algorithms, but with
+just-in-time delivery of exactly the subset of the public group state needed by
+a given algorithm. We achieve this property due to the fact that aside from initial
+tree validation and sending commits, a client only needs log-scale information.<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-5">In summary, Partial MLS allows partial clients to obtain greater efficiency, at the
+cost of lowering the authentication guarantees they receive and losing the
+ability to make Commits.  We discuss a few scenarios that motivate this
+trade-off in <a href="#use-cases" class="auto internal xref">Section 3</a>.  The difference in authentication properties, in
+particular, is discussed in detail in <a href="#security-considerations" class="auto internal xref">Section 13</a>.<a href="#section-1-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="terminology">
+<section id="section-2">
+      <h2 id="name-terminology">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-terminology" class="section-name selfRef">Terminology</a>
+      </h2>
+<p id="section-2-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2-2">
+        <dt id="section-2-2.1">Tree slice:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.2">
+          <p id="section-2-2.2.1">A tree slice is the direct path from a leaf node to the root, together with
+the tree hashes on the co-path.<a href="#section-2-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-2.3">Membership proof:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.4">
+          <p id="section-2-2.4.1">A tree slice that proves that a given leaf node is part of a ratchet tree with
+a given tree hash.<a href="#section-2-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-2.5">Partial client:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.6">
+          <p id="section-2-2.6.1">An MLS client that does not download, validate, and maintain a copy of the
+group's ratchet tree. A partial client does not store any public data about the
+group's ratchet tree, only the HPKE decryption keys associated to nodes on the
+client's direct path.<a href="#section-2-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-2.7">Full client:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.8">
+          <p id="section-2-2.8.1">A normal MLS client, in possession of the full MLS ratchet tree for the group.<a href="#section-2-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-2.9">Sender-authenticated message:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.10">
+          <p id="section-2-2.10.1">A signed MLS message such as Welcome or PublicMessage, together with a
+membership proof that proves the sender's membership in the group.<a href="#section-2-2.10.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-2.11">Annotated Welcome:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.12">
+          <p id="section-2-2.12.1">A Welcome message together with information that a partial client needs to
+process it.<a href="#section-2-2.12.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-2.13">Annotated Commit:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.14">
+          <p id="section-2-2.14.1">A Commit message (as a PublicMessage or PrivateMessage) together with
+information that a partial client needs to process it.<a href="#section-2-2.14.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<p id="section-2-3">As in MLS, message structures are defined using the TLS presentation syntax
+<span>[<a href="#RFC8446" class="cite xref">RFC8446</a>]</span>. Unlike most MLS messages, however, these structures are not
+encapsulated in a signed or MAC'ed structure. So it may be more convenient for
+applications to encode these structures in application-specific encodings.<a href="#section-2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="use-cases">
+<section id="section-3">
+      <h2 id="name-use-cases">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-use-cases" class="section-name selfRef">Use Cases</a>
+      </h2>
+<p id="section-3-1">Partial MLS is intended to support use cases where MLS groups are very large, from
+thousands to millions of participants.  Application-level constraints arising
+from these use cases align well with the trade-offs introduced by Partial MLS.  It
+is usually acceptable (even desirable) that only certain members are able to
+send Commit messages.  And in such large groups, clients often do not care about
+authenticating all members of the group.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-2">The following subsections outline two concrete use cases.<a href="#section-3-2" class="pilcrow">¶</a></p>
+<div id="large-meetings-webinars">
+<section id="section-3.1">
+        <h3 id="name-large-meetings-webinars">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-large-meetings-webinars" class="section-name selfRef">Large Meetings / Webinars</a>
+        </h3>
+<p id="section-3.1-1">MLS can be used to establish end-to-end encryption keys in real-time
+conferencing scenarios.  In such scenarios, a client joins the MLS group when
+they are admitted to a meeting.  With normal MLS, the client is required to
+download and validate the entire ratchet tree before being able to derive media
+encryption keys.  In meetings with a thousand or more participants, this process
+can take enough time that it introduces a noticeable delay in joining the
+meeting.  If a client joins as a partial client, then they can download a
+log-sized AnnotatedWelcome message and immediately obtain the media encryption
+keys.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.1-2">Such a client will not have authenticated the group when they join the meeting.
+However, applications often do not display identity information in such setting
+anyway.  In "webinar" settings, it is common for attendee identities to be visible
+only to panelists and administrators, not to other attendees.  Partial MLS allows
+MLS to align with this privacy property.  If attendees join as partial clients,
+they can be provided with membership proofs for attendees whom they are
+authorized to see, and not for others.  Even in settings where attendees can all
+see each others' identities, user interface constraints usually cause only a
+small fraction of the attendee list to be visible at one time, so it is natural
+to load the tree dynamically as the client needs access to the authenticated
+identities of specific other clients.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
+<p id="section-3.1-3">The constraint on clients sending Commits is also natural here.  In such large
+gatherings, there are usually administrators who are authorized to see the
+identities of all participants and control who is in the group, and conversely,
+there are certain actions that are not available to non-admin participants.  So
+it makes sense for the administrators to use full clients that are able to make
+Commits to implement the actions they are authorized to take, and for more
+limited clients to be unable to make commits.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="broadcast-sessions">
+<section id="section-3.2">
+        <h3 id="name-broadcast-sessions">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-broadcast-sessions" class="section-name selfRef">Broadcast sessions</a>
+        </h3>
+<p id="section-3.2-1">Internet streaming platforms frequently host broadcasts with large numbers of
+viewers, but the entities providing these broadcasts might like to ensure that
+the streaming platform cannot see the streamed content.  For example, the Media
+over QUIC Transport protocol, designed to support streaming use cases, states as
+a goal ensuring that "the media content itself remains opaque and private" from
+the relays involved in its distribution <span>[<a href="#I-D.ietf-moq-transport" class="cite xref">I-D.ietf-moq-transport</a>]</span>.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.2-2">In such settings, the partial client / full client roles align with the viewer /
+owner roles, respectively.  Viewers do not care about the identities of other
+viewers (at most, they care that the stream comes from an authentic source) and
+they aren't authorized to do anything in MLS besides join the group.  Viewers
+are also typically in more constrained situations than the source of a stream.
+So the reduced resource requirements are well worth the loss of full-group
+authentication and the ability to Commit.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="protocol-overview">
+<section id="section-4">
+      <h2 id="name-protocol-overview">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-protocol-overview" class="section-name selfRef">Protocol Overview</a>
+      </h2>
+<p id="section-4-1">A partial client does not receive or validate a full copy of the ratchet tree for
+a group, but still possesses the group's secrets, including receiving updated
+secrets as the group evolves. When MLS messages are sent to a partial client,
+they need to be accompanied by annotations that provide the partial client with
+just enough of information about the ratchet tree to process the message. These
+annotations can be computed by any party with knowledge of the group's ratchet
+tree, including the committer and sometimes the DS.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<span id="name-overview-of-partial-mls"></span><div id="fig-overview">
+<figure id="figure-1">
+        <div id="section-4-2.1">
+          <div class="alignLeft art-svg artwork" id="section-4-2.1.1">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="512" width="552" viewBox="0 0 552 512" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+              <path d="M 32,64 L 32,496" fill="none" stroke="black"></path>
+              <path d="M 168,64 L 168,496" fill="none" stroke="black"></path>
+              <path d="M 344,64 L 344,232" fill="none" stroke="black"></path>
+              <path d="M 344,248 L 344,280" fill="none" stroke="black"></path>
+              <path d="M 344,296 L 344,376" fill="none" stroke="black"></path>
+              <path d="M 344,392 L 344,472" fill="none" stroke="black"></path>
+              <path d="M 432,64 L 432,280" fill="none" stroke="black"></path>
+              <path d="M 432,296 L 432,376" fill="none" stroke="black"></path>
+              <path d="M 432,392 L 432,472" fill="none" stroke="black"></path>
+              <path d="M 520,64 L 520,496" fill="none" stroke="black"></path>
+              <path d="M 32,112 L 160,112" fill="none" stroke="black"></path>
+              <path d="M 168,160 L 336,160" fill="none" stroke="black"></path>
+              <path d="M 168,240 L 424,240" fill="none" stroke="black"></path>
+              <path d="M 168,288 L 512,288" fill="none" stroke="black"></path>
+              <path d="M 32,336 L 160,336" fill="none" stroke="black"></path>
+              <path d="M 168,384 L 512,384" fill="none" stroke="black"></path>
+              <path d="M 168,464 L 336,464" fill="none" stroke="black"></path>
+              <path d="M 168,480 L 512,480" fill="none" stroke="black"></path>
+              <polygon class="arrowhead" points="520,480 508,474.4 508,485.6" fill="black" transform="rotate(0,512,480)"></polygon>
+              <polygon class="arrowhead" points="520,384 508,378.4 508,389.6" fill="black" transform="rotate(0,512,384)"></polygon>
+              <polygon class="arrowhead" points="520,288 508,282.4 508,293.6" fill="black" transform="rotate(0,512,288)"></polygon>
+              <polygon class="arrowhead" points="432,240 420,234.4 420,245.6" fill="black" transform="rotate(0,424,240)"></polygon>
+              <polygon class="arrowhead" points="344,464 332,458.4 332,469.6" fill="black" transform="rotate(0,336,464)"></polygon>
+              <polygon class="arrowhead" points="344,160 332,154.4 332,165.6" fill="black" transform="rotate(0,336,160)"></polygon>
+              <polygon class="arrowhead" points="168,336 156,330.4 156,341.6" fill="black" transform="rotate(0,160,336)"></polygon>
+              <polygon class="arrowhead" points="168,112 156,106.4 156,117.6" fill="black" transform="rotate(0,160,112)"></polygon>
+              <g class="text">
+                <text x="20" y="36">Full</text>
+                <text x="164" y="36">Delivery</text>
+                <text x="336" y="36">Partial</text>
+                <text x="424" y="36">Partial</text>
+                <text x="500" y="36">Full</text>
+                <text x="28" y="52">Client</text>
+                <text x="64" y="52">A</text>
+                <text x="160" y="52">Service</text>
+                <text x="332" y="52">Client</text>
+                <text x="368" y="52">B</text>
+                <text x="420" y="52">Client</text>
+                <text x="456" y="52">C</text>
+                <text x="508" y="52">Client</text>
+                <text x="544" y="52">D</text>
+                <text x="68" y="84">Commit</text>
+                <text x="72" y="100">Welcome</text>
+                <text x="244" y="132">AnnotatedWelcome</text>
+                <text x="184" y="148">=</text>
+                <text x="224" y="148">Welcome</text>
+                <text x="264" y="148">+</text>
+                <text x="300" y="148">Proofs</text>
+                <text x="240" y="196">AnnotatedCommit</text>
+                <text x="184" y="212">=</text>
+                <text x="220" y="212">Commit</text>
+                <text x="256" y="212">+</text>
+                <text x="292" y="212">Proofs</text>
+                <text x="200" y="228">+</text>
+                <text x="252" y="228">Resolution</text>
+                <text x="316" y="228">Info</text>
+                <text x="204" y="276">Commit</text>
+                <text x="100" y="324">PrivateMessage</text>
+                <text x="236" y="372">PrivateMessage</text>
+                <text x="248" y="420">SenderAuthMessage</text>
+                <text x="184" y="436">=</text>
+                <text x="252" y="436">PrivateMessage</text>
+                <text x="200" y="452">+</text>
+                <text x="244" y="452">Proof(A)</text>
+                <text x="344" y="500">|</text>
+                <text x="432" y="500">|</text>
+              </g>
+            </svg><a href="#section-4-2.1.1" class="pilcrow">¶</a>
+</div>
+</div>
+<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<a href="#name-overview-of-partial-mls" class="selfRef">Overview of Partial MLS</a>
+        </figcaption></figure>
+</div>
+<p id="section-4-3"><a href="#fig-overview" class="auto internal xref">Figure 1</a> illustrates the main changes introduced by Partial MLS:<a href="#section-4-3" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-4-4">
+<li id="section-4-4.1">
+          <p id="section-4-4.1.1">When a partial client is added to the group, they are provided an
+AnnotatedWelcome message, which comprises a normal Welcome message plus
+membership proofs for the sender and joiner.<a href="#section-4-4.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-4-4.2">
+          <p id="section-4-4.2.1">From each Commit that is generated in the group, an individual
+AnnotatedCommit is generated for each partial client. An AnntatedCommit
+comprises a normal MLS Commit message, together with membership proofs and
+the information that the partial client needs in order to process the update
+path in the Commit.<a href="#section-4-4.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-4-4.3">
+          <p id="section-4-4.3.1">When messages are sent in the group, e.g., carrying application data,
+they are extended with a membership proofs so that partial clients can
+authenticate the sender's membership in the group.<a href="#section-4-4.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
+<p id="section-4-5">In this example, we have shown the required annotations being added by the DS.
+This allows full clients to behave as they would in normal MLS, but requires
+that the DS maintain a copy of the group's ratchet tree. It is also possible
+for committers to generate the required annotated messages. This document does
+not define who generates annotated messages from the base MLS messages, or how
+this entity learns which clients are partial or full clients.<a href="#section-4-5" class="pilcrow">¶</a></p>
+<p id="section-4-6">Partial clients still need to be provided with access to any proposals sent in a
+group outside of Commits. Partial clients cannot process proposals that modify the
+structure of the tree, in particular Add, Update, or Remove proposals. They
+can, however, verify that these proposals were included in a given Commit. And
+they need to see proposals such as PreSharedKey or GroupContextExtensions so
+that they can update their state appropriately.<a href="#section-4-6" class="pilcrow">¶</a></p>
+<p id="section-4-7">Depending on how Partial MLS is deployed, a client might need to inform the DS or
+other members of its status (partial or full), so that the proper annotations can
+be generated when it is partial. It is harmless for a full client to receive an
+AnnotatedCommit; the annotations can simply be ignored.<a href="#section-4-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="upgrading-and-downgrading">
+<section id="section-5">
+      <h2 id="name-upgrading-and-downgrading">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-upgrading-and-downgrading" class="section-name selfRef">Upgrading and Downgrading</a>
+      </h2>
+<p id="section-5-1">A partial client can upgrade to being a full client at any time by downloading the
+full ratchet tree; a full client can downgrade by deleting its local copy of the
+ratchet tree.  Before a partial client uses a copy of the ratchet tree to upgrade
+to being a full client, it <span class="bcp14">MUST</span> verify the integrity of the ratchet tree in the
+same way it would when joining as a full client, following the steps in
+<span><a href="https://rfc-editor.org/rfc/rfc9420#section-12.4.3.1" class="relref">Section 12.4.3.1</a> of [<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>.<a href="#section-5-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="membership-proofs-and-partial-trees">
+<section id="section-6">
+      <h2 id="name-membership-proofs-and-parti">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-membership-proofs-and-parti" class="section-name selfRef">Membership Proofs and Partial Trees</a>
+      </h2>
+<p id="section-6-1">Although partial clients do not have a copy of the group's ratchet tree, they
+still agree on the root tree hash of the ratchet tree, via the MLS key schedule
+as usual. This fact, together with the Merkle-tree-like structure of the MLS
+tree hash, allows a partial client to verify the legitimacy of partial information
+about the ratchet tree. In particular, for any leaf in the tree, anyone in
+possession of the public data of the ratchet tree can construct a "membership
+proof" that proves that a leaf node with specific contents is located at a
+specific leaf index in the tree.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<p id="section-6-2">A membership proof for a leaf node comprises:<a href="#section-6-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-6-3.1">
+          <p id="section-6-3.1.1">The number of leaves in the tree.<a href="#section-6-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-6-3.2">
+          <p id="section-6-3.2.1">The leaf index of the member's leaf.<a href="#section-6-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-6-3.3">
+          <p id="section-6-3.3.1">The values of the nodes from the leaf node to the root of the tree, including
+both the leaf node and the root.<a href="#section-6-3.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-6-3.4">
+          <p id="section-6-3.4.1">The tree hash values for the nodes on the copath of the leaf node.<a href="#section-6-3.4.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<div class="alignLeft art-text artwork" id="section-6-4">
+<pre>
+struct {
+    opaque hash_value&lt;V&gt;;
+} CopathHash;
+
+struct {
+  uint32 leaf_index;
+  uint32 n_leaves;
+  optional&lt;Node&gt; direct_path_nodes&lt;V&gt;;
+  CopathHash copath_hashes&lt;V&gt;;
+} MembershipProof;
+</pre><a href="#section-6-4" class="pilcrow">¶</a>
+</div>
+<p id="section-6-5">From these values, the root tree hash of the ratchet tree can be recomputed,
+following the same recursive algorithm specified in <span><a href="https://rfc-editor.org/rfc/rfc9420#section-7.8" class="relref">Section 7.8</a> of [<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>.
+The selection of nodes and subtree hashes provides the precise collection of
+inputs required by the algorithm.<a href="#section-6-5" class="pilcrow">¶</a></p>
+<p id="section-6-6">A membership proof is said to be valid relative to a given tree hash if the tree
+hash recomputed in this way is equal to the given tree hash.<a href="#section-6-6" class="pilcrow">¶</a></p>
+<p id="section-6-7">Two membership proofs are said to reference the same tree if their <code>n_leaves</code>
+fields are equal, and they produce identical root tree hashes.<a href="#section-6-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sender-authenticated-messages">
+<section id="section-7">
+      <h2 id="name-sender-authenticated-messag">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-sender-authenticated-messag" class="section-name selfRef">Sender-Authenticated Messages</a>
+      </h2>
+<p id="section-7-1">For several types of message, MLS authenticates that a message was created by
+the member at a specific leaf node of the group's ratchet tree by signing the
+message with the private key corresponding to the <code>signature_key</code> in the leaf
+node. Full clients verify these messages by looking up the required signature
+verification key in their local copy of the ratchet tree.<a href="#section-7-1" class="pilcrow">¶</a></p>
+<p id="section-7-2">Since partial clients do not store the group's ratchet tree, they cannot perform
+this lookup. A SenderAuthenticatedMessage presents a message along with a
+membership proof for the sender of a message, which provides the required leaf
+node and a proof of its inclusion in the tree.<a href="#section-7-2" class="pilcrow">¶</a></p>
+<div class="lang-tls-syntax sourcecode" id="section-7-3">
+<pre>
+struct {
+    T message;
+    MembershipProof sender_membership_proof;
+} SenderAuthenticatedMessage&lt;T&gt;;
+</pre><a href="#section-7-3" class="pilcrow">¶</a>
+</div>
+<p id="section-7-4">Before using the <code>sender_membership_proof</code> to verify the included message, a client
+processing a SenderAuthenticatedMessage <span class="bcp14">MUST</span> verify that the proof is valid
+relative to the group's tree hash for the epoch in which the message was sent.
+For a PublicMessage or PrivateMessage, this is the tree hash for the epoch
+indicated in the FramedContent. For a GroupInfo or Welcome, it is the tree hash
+in the object itself.<a href="#section-7-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="joining-via-annotated-welcome">
+<section id="section-8">
+      <h2 id="name-joining-via-annotated-welco">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-joining-via-annotated-welco" class="section-name selfRef">Joining via Annotated Welcome</a>
+      </h2>
+<p id="section-8-1">An AnnotatedWelcome message provides a client joining a group with membership
+proofs for the sender and the joiner (i.e., the recipient of the message).<a href="#section-8-1" class="pilcrow">¶</a></p>
+<div class="lang-tls-syntax sourcecode" id="section-8-2">
+<pre>
+struct {
+    SenderAuthenticatedMessage&lt;Welcome&gt; welcome;
+    MembershipProof joiner_membership_proof;
+} AnnotatedWelcome;
+</pre><a href="#section-8-2" class="pilcrow">¶</a>
+</div>
+<p id="section-8-3">The fields in the AnnotatedWelcome have the following semantics:<a href="#section-8-3" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-8-4">
+        <dt id="section-8-4.1">
+<code>welcome</code>:</dt>
+        <dd style="margin-left: 1.5em" id="section-8-4.2">
+          <p id="section-8-4.2.1">A Welcome message, together with a membership proof for the sender relative to
+the ratchet tree specified in the Welcome.<a href="#section-8-4.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-8-4.3">
+<code>joiner_membership_proof</code>:</dt>
+        <dd style="margin-left: 1.5em" id="section-8-4.4">
+          <p id="section-8-4.4.1">A proof of the receipient's membership in the ratchet tree specified in the
+Welcome.<a href="#section-8-4.4.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<p id="section-8-5">An AnnotatedWelcome can be generated by any party that knows the group's ratchet
+tree and the indices of the sender and joiner in the tree.<a href="#section-8-5" class="pilcrow">¶</a></p>
+<p id="section-8-6">A partial client processes an AnnotatedWelcome in the following way:<a href="#section-8-6" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-8-7">
+<li id="section-8-7.1">
+          <p id="section-8-7.1.1">Verify that the <code>sender_membership_proof</code> and <code>joiner_membership_proof</code>
+reference the same tree.<a href="#section-8-7.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-8-7.2">
+          <p id="section-8-7.2.1">Join the group using the procedure defined in <span><a href="https://rfc-editor.org/rfc/rfc9420#section-12.4.3.1" class="relref">Section 12.4.3.1</a> of [<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>, with the following modifications:<a href="#section-8-7.2.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8-7.2.2.1">
+              <p id="section-8-7.2.2.1.1">When verifying the signature on the GroupInfo object, the signature public
+key is taken from the LeafNode in the <code>sender_membership_proof</code> tree slice.
+The <code>signer</code> field of the <code>group_info</code> object <span class="bcp14">MUST</span> be equal to the
+<code>leaf_index</code> field of the <code>sender_membership_proof</code>.<a href="#section-8-7.2.2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8-7.2.2.2">
+              <p id="section-8-7.2.2.2.1">The "Verify the integrity of the ratchet tree" step is replaced with a
+check that the <code>tree_hash</code> in the GroupInfo matches the root tree hash
+produced by the membership proofs.<a href="#section-8-7.2.2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8-7.2.2.3">
+              <p id="section-8-7.2.2.3.1">The <code>my_leaf</code> value is taken from the the <code>leaf_index</code> field of the
+<code>joiner_membership_proof</code>, instead of found by searching the tree.<a href="#section-8-7.2.2.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</li>
+      </ol>
+</section>
+</div>
+<div id="joining-via-external-commit">
+<section id="section-9">
+      <h2 id="name-joining-via-external-commit">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-joining-via-external-commit" class="section-name selfRef">Joining via External Commit</a>
+      </h2>
+<p id="section-9-1">A partial client cannot join via an external Commit, because partial clients cannot
+generate commits. A client could, however, join as a full client via an
+external commit, then transition to being a partial client by deleting its copy of
+the tree. This would still require the client to download and validate the
+tree, but would save the client the effort of maintaining their copy of the
+tree.<a href="#section-9-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="annotated-commit">
+<section id="section-10">
+      <h2 id="name-annotated-commit">
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-annotated-commit" class="section-name selfRef">Annotated Commit</a>
+      </h2>
+<p id="section-10-1">There are two main challenges for a partial client processing a Commit. First,
+the partial client cannot compute the resolution of the committer's copath, so
+they cannot determine which of the HPKECiphertext objects in the UpdatePath they
+should decrypt to obtain a path secret. Second, the partial client cannot compute
+the updated tree hash, since they don't have the full tree. An AnnotatedCommit
+provides these pieces of information, along with proof that the sender and
+receiver are both still in the group after the Commit.<a href="#section-10-1" class="pilcrow">¶</a></p>
+<div class="lang-tls-syntax sourcecode" id="section-10-2">
+<pre>
+struct {
+    MLSMessage commit;
+    optional&lt;MembershipProof&gt; sender_membership_proof;
+
+    opaque tree_hash_after&lt;V&gt;;
+    optional&lt;uint32&gt; resolution_index;
+
+    MembershipProof sender_membership_proof_after;
+    MembershipProof receiver_membership_proof_after;
+} AnnotatedCommit;
+</pre><a href="#section-10-2" class="pilcrow">¶</a>
+</div>
+<p id="section-10-3">The fields in the AnnotatedCommit have the following semantics:<a href="#section-10-3" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-10-4">
+        <dt id="section-10-4.1">
+<code>commit</code>:</dt>
+        <dd style="margin-left: 1.5em" id="section-10-4.2">
+          <p id="section-10-4.2.1">An MLSMessage containing PrivateMessage or PublicMessage with <code>content_type</code>
+            <code>commit</code>.<a href="#section-10-4.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-10-4.3">
+<code>sender_membership_proof</code>:</dt>
+        <dd style="margin-left: 1.5em" id="section-10-4.4">
+          <p id="section-10-4.4.1">A membership proof for the sender of the Commit relative to the tree for the
+epoch in which the Commit is sent. This field <span class="bcp14">MUST</span> be present if the
+<code>sender_type</code> for the Commit is <code>member</code>, and otherwise <span class="bcp14">MUST</span> be absent.<a href="#section-10-4.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-10-4.5">
+<code>tree_hash_after</code>:</dt>
+        <dd style="margin-left: 1.5em" id="section-10-4.6">
+          <p id="section-10-4.6.1">The tree hash of the group's ratchet tree after the Commit has been applied.<a href="#section-10-4.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-10-4.7">
+<code>resolution_index</code>:</dt>
+        <dd style="margin-left: 1.5em" id="section-10-4.8">
+          <p id="section-10-4.8.1">The recipient can compute which entry in the UpdatePath in the Commit it
+should use based on the sender index in the Commit. This index specifies which
+HPKECiphertext in the UpdatePathNode to use. This field <span class="bcp14">MUST</span> be included if and
+only if the Commit has a <code>path</code> field populated.<a href="#section-10-4.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-10-4.9">
+<code>sender_membership_proof_after</code>:</dt>
+        <dd style="margin-left: 1.5em" id="section-10-4.10">
+          <p id="section-10-4.10.1">A membership proof for the sender of the Commit relative to the tree after the
+Commit has been applied.<a href="#section-10-4.10.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-10-4.11">
+<code>receiver_membership_proof_after</code>:</dt>
+        <dd style="margin-left: 1.5em" id="section-10-4.12">
+          <p id="section-10-4.12.1">A membership proof for the receiver of the Commit relative to the tree after the
+Commit has been applied.<a href="#section-10-4.12.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<p id="section-10-5">An AnnotatedCommit can be generated by any party that knows the group's ratchet
+tree (both before and after the Commit) and the indices of the sender and joiner
+in the tree. It is safe for the recipient to accept the <code>tree_hash</code> supplied by
+an unauthenticated party because the tree hash is authenticated by the
+<code>confirmation_tag</code> in the Commit.<a href="#section-10-5" class="pilcrow">¶</a></p>
+<p id="section-10-6">A partial client processes an AnnotatedCommit in the following way:<a href="#section-10-6" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-10-7">
+<li id="section-10-7.1">
+          <p id="section-10-7.1.1">Verify that the <code>sender_membership_proof</code> in the <code>commit</code> field, if present,
+is valid relative to the group's current tree hash.<a href="#section-10-7.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-10-7.2">
+          <p id="section-10-7.2.1">Verify that the <code>sender_membership_proof_after</code> and
+<code>receiver_membership_proof_after</code> reference the same tree, and that they are
+valid relative to <code>tree_hash_after</code>.<a href="#section-10-7.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-10-7.3">
+          <p id="section-10-7.3.1">Process the Commit using the procedure defined in <span><a href="https://rfc-editor.org/rfc/rfc9420#section-12.4.2" class="relref">Section 12.4.2</a> of [<a href="#RFC9420" class="cite xref">RFC9420</a>]</span>, with the following modifications:<a href="#section-10-7.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
+<ul class="normal">
+<li class="normal" id="section-10-8.1">
+          <p id="section-10-8.1.1">When validating a FramedContent with <code>sender_type</code> set to <code>member</code>, the
+<code>sender_membership_proof</code> field <span class="bcp14">MUST</span> be present, and the signature public
+key is taken from the LeafNode in the <code>sender_membership_proof</code> tree slice.
+The <code>leaf_index</code> field of the <code>Sender</code> object <span class="bcp14">MUST</span> be equal to the
+<code>leaf_index</code> field of the <code>sender_membership_proof</code>.<a href="#section-10-8.1.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-10-8.1.2.1">
+              <p id="section-10-8.1.2.1.1">If the <code>sender_type</code> is set to <code>new_member_commit</code> (the only other valid
+value), then the signature public key is looked up in the included Add
+proposal, as normal. In this case, there is no further validation of the
+<code>leaf_index</code> field of of the <code>sender_membership_proof</code>.<a href="#section-10-8.1.2.1.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</li>
+        <li class="normal" id="section-10-8.2">
+          <p id="section-10-8.2.1">The proposal list validation step is omitted, because a partial client doesn't
+have sufficient information to check all of the validation rules.<a href="#section-10-8.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-10-8.3">
+          <p id="section-10-8.3.1">When applying proposals, only the proposals that do not modify the tree are
+applied, in particular, PreSharedKey and GroupContextExtensions proposals.<a href="#section-10-8.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-10-8.4">
+          <p id="section-10-8.4.1">Likewise, the creation of the new ratchet tree is omitted.<a href="#section-10-8.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-10-8.5">
+          <p id="section-10-8.5.1">In processing the <code>path</code> value, if present, replace the path node decryption
+steps with the following steps:<a href="#section-10-8.5.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-10-8.5.2.1">
+              <p id="section-10-8.5.2.1.1">Use the <code>leaf_index</code> field of the <code>sender_membership_proof</code> to identify
+the lowest common ancestor between the committer. This is the node where
+the new path_secret will be inserted into the tree.<a href="#section-10-8.5.2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-10-8.5.2.2">
+              <p id="section-10-8.5.2.2.1">Determine the index <code>update_path_index</code> of the lowest common ancestor
+among the non-blank nodes in the committer's direct path, as provided in
+the <code>sender_membership_proof_after</code> field.<a href="#section-10-8.5.2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-10-8.5.2.3">
+              <p id="section-10-8.5.2.3.1">From the entry at index <code>update_path_index</code> of the <code>nodes</code> vector in the
+UpdatePath, select the HPKECiphertext at index <code>resolution_index</code> from the
+<code>encrypted_path_secret</code>.<a href="#section-10-8.5.2.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-10-8.5.2.4">
+              <p id="section-10-8.5.2.4.1">Identify the next non-blank node in the recipient's direct path under the
+lowest common ancestor, using the direct path provided in the
+<code>recipient_membership_proof_after</code> field. Retrieve the private HPKE
+decryption key for this node.<a href="#section-10-8.5.2.4.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-10-8.5.2.5">
+              <p id="section-10-8.5.2.5.1">Decrypt the encrypted path secret as normal, using the tree hash in the
+<code>tree_hash_after</code> field in the provisional GroupContext.<a href="#section-10-8.5.2.5.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-10-8.5.2.6">
+              <p id="section-10-8.5.2.6.1">Derive the remaining path secrets corresponding to the non-blank nodes in
+the recipient's new direct path, as provided in the
+<code>recipient_membership_proof_after</code> field.<a href="#section-10-8.5.2.6.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-10-8.5.2.7">
+              <p id="section-10-8.5.2.7.1">Define the <code>commit_secret</code> to be <code>path_secret[n+1]</code>, as normal.<a href="#section-10-8.5.2.7.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</li>
+      </ul>
+</section>
+</div>
+<div id="application-messages">
+<section id="section-11">
+      <h2 id="name-application-messages">
+<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-application-messages" class="section-name selfRef">Application Messages</a>
+      </h2>
+<p id="section-11-1">MLS clients can exchange messages by sending application data within the
+PrivateMessage framing. In a group where partial clients are present, these
+messages should be further encapsulated in a SenderAuthenticatedMessage, so that
+partial clients have the membership proof necessary to verify the sender's
+membership, the public key necessary to verify the message signature, and the
+credential necessary to verify the sender's identity.<a href="#section-11-1" class="pilcrow">¶</a></p>
+<p id="section-11-2">As noted above, this can be accomplished either by the sender creating a
+SenderAuthenticatedMessage, or by the DS adding the relevant membership proof
+while the message is in transit.<a href="#section-11-2" class="pilcrow">¶</a></p>
+<p id="section-11-3">Note that encapsulating a message as a SenderAuthenticatedMessage leaks
+information about the sender to the DS, including the sender's index in the tree
+and the sender's LeafNode.  See <a href="#metadata-privacy" class="auto internal xref">Section 13.1</a> for more discussion of
+metadata privacy.<a href="#section-11-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="operational-considerations">
+<section id="section-12">
+      <h2 id="name-operational-considerations">
+<a href="#section-12" class="section-number selfRef">12. </a><a href="#name-operational-considerations" class="section-name selfRef">Operational Considerations</a>
+      </h2>
+<p id="section-12-1">The major operational challenge in deploying Partial MLS is ensuring that partial
+clients receive the proper annotations to Welcome and Commit messages. As
+discussed in <a href="#protocol-overview" class="auto internal xref">Section 4</a>, this is up to the application. Since full
+clients don't need the annotations, applications will be more robust if they
+send annotations in a way that they can be cleanly ignored by full clients.<a href="#section-12-1" class="pilcrow">¶</a></p>
+<p id="section-12-2">Partial MLS substantially reduces the amount of data required to join an MLS
+group, since it replaces the linear-scale ratchet tree with two log-scale
+membership proofs. Partial MLS does not address the potentially linear scaling of
+Commit messages; in fact, it makes Commits spartially bigger. There are other
+approaches to reducing Commit sizes, e.g., the SplitCommit approach in
+<span>[<a href="#I-D.mularczyk-mls-splitmls" class="cite xref">I-D.mularczyk-mls-splitmls</a>]</span>.  These approaches can be cleanly integrated
+with Partial MLS via the AnnotatedCommit structure.  <a href="#download-cost" class="auto internal xref">Table 1</a> summarizes
+the scaling of the amount of data that a client needs to download in order to
+perform various MLS operations.  Sending a Commit requires linear-scale work in
+any case.<a href="#section-12-2" class="pilcrow">¶</a></p>
+<span id="name-download-scaling-under-prot"></span><div id="download-cost">
+<table class="center" id="table-1">
+        <caption>
+<a href="#table-1" class="selfRef">Table 1</a>:
+<a href="#name-download-scaling-under-prot" class="selfRef">Download scaling under protocol variations</a>
+        </caption>
+<thead>
+          <tr>
+            <th class="text-left" rowspan="1" colspan="1">Operation</th>
+            <th class="text-center" rowspan="1" colspan="1">RFC MLS</th>
+            <th class="text-center" rowspan="1" colspan="1">Partial MLS</th>
+            <th class="text-center" rowspan="1" colspan="1">Split Commits</th>
+            <th class="text-center" rowspan="1" colspan="1">Partial + Split</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">Join</td>
+            <td class="text-center" rowspan="1" colspan="1">O(N)</td>
+            <td class="text-center" rowspan="1" colspan="1">O(log N)</td>
+            <td class="text-center" rowspan="1" colspan="1">O(N)</td>
+            <td class="text-center" rowspan="1" colspan="1">O(log N)</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">Process Commit</td>
+            <td class="text-center" rowspan="1" colspan="1">O(N)</td>
+            <td class="text-center" rowspan="1" colspan="1">O(N)</td>
+            <td class="text-center" rowspan="1" colspan="1">O(log N)</td>
+            <td class="text-center" rowspan="1" colspan="1">O(log N)</td>
+          </tr>
+        </tbody>
+      </table>
+</div>
+</section>
+</div>
+<div id="security-considerations">
+<section id="section-13">
+      <h2 id="name-security-considerations">
+<a href="#section-13" class="section-number selfRef">13. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-13-1">The MLS protocol in <span>[<a href="#RFC9420" class="cite xref">RFC9420</a>]</span> has a number of security analyses attached. To
+describe the security of Partial MLS and how it relates to the security of full
+MLS we summarize the following main high-level guarantees of MLS as follows:<a href="#section-13-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-13-2.1">
+          <p id="section-13-2.1.1"><strong>Membership Agreement</strong>: If a client B has a local group state for group G in
+epoch N, and it receives (and accepts) an application message from a sender A
+for group G in epoch N, then A must be a member of G in epoch N at B, and if A
+is honest, then A and B agree on the full membership of the group G in
+epoch N.<a href="#section-13-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-13-2.2">
+          <p id="section-13-2.2.1"><strong>Member Identity Authentication</strong>: If a client B has a local group state for
+group G in epoch N, and B believes that A is a member of G in epoch N, and
+that A is linked to a user identity U, then either the signature key of U’s
+credential is compromised, or A belongs to U.<a href="#section-13-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-13-2.3">
+          <p id="section-13-2.3.1"><strong>Group Key Secrecy</strong>: If B has a local group state for group G in epoch N
+with group key K (init secret), then K can only be known to members of G in
+epoch N. That is, if the attacker knows K, then one of the signature or
+decryption keys corresponding to one of the leaves of the tree stored at B for
+G in epoch N must be compromised. To obtain these properties, each member in
+MLS verifies a number of signatures and MACs, and seeks to preserve the
+TreeKEM Tree Invariants:<a href="#section-13-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-13-2.4">
+          <p id="section-13-2.4.1"><strong>Public Key Tree Invariant</strong>: At each node of the tree at a member B, the
+public key, if set, was set by one of the members currently underneath that
+node<a href="#section-13-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-13-2.5">
+          <p id="section-13-2.5.1"><strong>Path Secret Invariant</strong>: At each node, the path secret stored at a member B,
+if set, was created by one of the members currently underneath that node<a href="#section-13-2.5.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-13-3">As a corollary of Group Key Secrecy, we also obtain authentication and
+confidentiality guarantees for application messages sent and received within a
+group.<a href="#section-13-3" class="pilcrow">¶</a></p>
+<p id="section-13-4">To verify the security guarantees provided to partial clients, a new security
+analysis was needed. We have analyzed the security of the protocol using two
+verification tools ProVerif and F*. The security analysis, and design of the
+security mechanisms, are inspired by work from Alwen et al.
+<span>[<a href="#AHKM22" class="cite xref">AHKM22</a>]</span>.<a href="#section-13-4" class="pilcrow">¶</a></p>
+<p id="section-13-5">Partial MLS preserves the invariants above and thereby all the security goals of
+MLS continue to hold at full members. However, a partial member may not know the
+identities of all other members in the group, and it may only discover these
+identities on-demand. Consequently, the Member Identity Authentication
+guarantee is weaker on partial clients. Furthermore, since partial members do not
+store the MLS tree, membership agreement only holds for the hash of the MLS
+tree:<a href="#section-13-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-13-6.1">
+          <p id="section-13-6.1.1"><strong>Partial Membership Agreement</strong>: If a partial client B has a local group state
+for group G in epoch N, and it receives (and accepts) an application message
+from a sender A for group G in epoch N, then A must be a member of G in
+epoch N at B, and if A is honest, then A and B agree on the GroupContext
+of the group G in epoch N.<a href="#section-13-6.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-13-6.2">
+          <p id="section-13-6.2.1"><strong>Partial Member Identity Authentication</strong>: If a partial client B has a local
+group state for group G in epoch N, and B has verified A’s membership proof in
+G, and A is linked to a user identity U, then either the signature key of U’s
+credential is compromised, or A belongs to U.<a href="#section-13-6.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-13-6.3">
+          <p id="section-13-6.3.1"><strong>Partial Group Key Secrecy</strong>: If a partial client B has a local group state for
+group G in epoch N with group key K (init secret), and if the tree hash at B
+corresponds to a full tree, then K can only be known to members at the leaves
+of this tree. That is, if the attacker knows K, then the signature or
+decryption keys at one of the leaves must have been compromised.<a href="#section-13-6.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-13-7">Note that the Partial Membership Agreement property holds irrespective of whether
+B has verified a membership proof from A.  The membership proofs in this
+protocol are thus more about providing precise source authentication within the
+group, rather than simply proving membership in the group.  Simply knowing the
+group's symmetric secrets suffices for the latter.<a href="#section-13-7" class="pilcrow">¶</a></p>
+<p id="section-13-8">Another technical caveat is that since partial members do not have the full tree,
+they cannot validate the uniqueness of all HPKE and signature keys in the tree,
+as required by RFC MLS. The exact security implications of removing this
+uniqueness check is not clear but is not expected to be significant.  In a group
+where full clients are honest, there is no practical difference, since a full
+client will verify that all of the required uniqness properties hold before
+issuing a Commit.  The main risk is that a malicious full client could cause a
+partial client to accept a tree hash representing a tree with duplicate keys.<a href="#section-13-8" class="pilcrow">¶</a></p>
+<div id="metadata-privacy">
+<section id="section-13.1">
+        <h3 id="name-metadata-privacy">
+<a href="#section-13.1" class="section-number selfRef">13.1. </a><a href="#name-metadata-privacy" class="section-name selfRef">Metadata Privacy</a>
+        </h3>
+<p id="section-13.1-1">The protocol described in this document assumes that the DS is trusted to know
+information about the group's ratchet tree.  The scenario described in
+<a href="#protocol-overview" class="auto internal xref">Section 4</a> assumes that the DS is maintaining a view of the ratchet
+tree and distributing appropriate portions of it to clients.  In fact, if the DS
+is to generate membership proofs to accompany PrivateMessage messages, then it
+will need to know the index of the sender in the tree, information that is
+normally encrypted as part of the SenderData.<a href="#section-13.1-1" class="pilcrow">¶</a></p>
+<p id="section-13.1-2">It is possible to operate this protocol in a more restrictive mode, where
+Commits are sent as PrivateMessage objects and the committer generates the
+required annotations for any partial clients in the group.  However, because there
+is no confidentiality protection for the annotations, they will leak information
+to the DS about the ratchet tree.<a href="#section-13.1-2" class="pilcrow">¶</a></p>
+<p id="section-13.1-3">Fixing this leakage would require changes to logic at the committer and partial
+clients.  The annotations attached to a Welcome message could be sent as
+GroupInfo extensions; effectively a partial version of the <code>ratchet_tree</code>
+extension.  The annotations attached to a Commit could be moved inside the
+PrivateMessage content, and the receiver signature validation logic updated to
+use the public key in the attached membership proof to validate the message
+signature.<a href="#section-13.1-3" class="pilcrow">¶</a></p>
+<p id="section-13.1-4">Thus, while a more metadata-private mode could be added to this protocol, it has
+been omitted for now in the interest of avoiding changes to full endpoints.<a href="#section-13.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="iana-considerations">
+<section id="section-14">
+      <h2 id="name-iana-considerations">
+<a href="#section-14" class="section-number selfRef">14. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-14-1">This document makes no request of IANA.<a href="#section-14-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-15">
+      <h2 id="name-references">
+<a href="#section-15" class="section-number selfRef">15. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<div id="sec-normative-references">
+<section id="section-15.1">
+        <h3 id="name-normative-references">
+<a href="#section-15.1" class="section-number selfRef">15.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+        <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8446">[RFC8446]</dt>
+        <dd>
+<span class="refAuthor">Rescorla, E.</span>, <span class="refTitle">"The Transport Layer Security (TLS) Protocol Version 1.3"</span>, <span class="seriesInfo">RFC 8446</span>, <span class="seriesInfo">DOI 10.17487/RFC8446</span>, <time datetime="2018-08" class="refDate">August 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8446">https://www.rfc-editor.org/rfc/rfc8446</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9420">[RFC9420]</dt>
+      <dd>
+<span class="refAuthor">Barnes, R.</span>, <span class="refAuthor">Beurdouche, B.</span>, <span class="refAuthor">Robert, R.</span>, <span class="refAuthor">Millican, J.</span>, <span class="refAuthor">Omara, E.</span>, and <span class="refAuthor">K. Cohn-Gordon</span>, <span class="refTitle">"The Messaging Layer Security (MLS) Protocol"</span>, <span class="seriesInfo">RFC 9420</span>, <span class="seriesInfo">DOI 10.17487/RFC9420</span>, <time datetime="2023-07" class="refDate">July 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9420">https://www.rfc-editor.org/rfc/rfc9420</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-15.2">
+        <h3 id="name-informative-references">
+<a href="#section-15.2" class="section-number selfRef">15.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="AHKM22">[AHKM22]</dt>
+        <dd>
+<span class="refAuthor">Alwen, J.</span>, <span class="refAuthor">Hartmann, D.</span>, <span class="refAuthor">Kiltz, E.</span>, and <span class="refAuthor">M. Mularczyk</span>, <span class="refTitle">"Server-Aided Continuous Group Key Agreement"</span>, <span class="refContent">ACM</span>, <span class="seriesInfo">Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security pp. 69-82</span>, <span class="seriesInfo">DOI 10.1145/3548606.3560632</span>, <time datetime="2022-11" class="refDate">November 2022</time>, <span>&lt;<a href="https://doi.org/10.1145/3548606.3560632">https://doi.org/10.1145/3548606.3560632</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.ietf-moq-transport">[I-D.ietf-moq-transport]</dt>
+        <dd>
+<span class="refAuthor">Nandakumar, S.</span>, <span class="refAuthor">Vasiliev, V.</span>, <span class="refAuthor">Swett, I.</span>, and <span class="refAuthor">A. Frindell</span>, <span class="refTitle">"Media over QUIC Transport"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-transport-13</span>, <time datetime="2025-07-07" class="refDate">7 July 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-13">https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-13</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.mularczyk-mls-splitmls">[I-D.mularczyk-mls-splitmls]</dt>
+      <dd>
+<span class="refTitle">"*** BROKEN REFERENCE ***"</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="known-issues">
+<section id="appendix-A">
+      <h2 id="name-known-issues">
+<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-known-issues" class="section-name selfRef">Known Issues</a>
+      </h2>
+<ul class="normal">
+<li class="normal" id="appendix-A-1.1">
+          <p id="appendix-A-1.1.1">To realize the completely optimized performance profile discussed on
+<a href="#operational-considerations" class="auto internal xref">Section 12</a>, we should define a version of AnnotatedCommit
+that sends a SplitCommit instead of a normal Commit.<a href="#appendix-A-1.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-A-1.2">
+          <p id="appendix-A-1.2.1">There is no signaling within the group of whether any members are partial
+clients, and if so which ones. This was omitted because it didn't seem
+clearly necessary, but it could be useful. For example, if a client could
+include a LeafNode extension that declares that it is a partial client, then a
+committer could use this signal to proactively generate AnnotatedCommits for
+the members. An approach like this might be necessary if we wanted to enable
+cases where annotations were confidential to the group.<a href="#appendix-A-1.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-A-1.3">
+          <p id="appendix-A-1.3.1">There are no WireFormat values registered for the new messages defined here
+that are likely to be sent on the wire: AnnotatedCommit,
+AnnotatedWelcome, or SenderAuthenticatedMessage&lt;PrivateMessage&gt;. It's not
+clear that these WireFormat values would be needed or useful, though, since
+the annotations added in these messages are effectively outside the bounds of
+MLS. They're more like how the delivery of the ratchet tree is unspecified in
+RFC MLS.<a href="#appendix-A-1.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+</section>
+</div>
+<div id="acknowledgments">
+<section id="appendix-B">
+      <h2 id="name-acknowledgments">
+<a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
+      </h2>
+<p id="appendix-B-1">TODO acknowledge.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-C">
+      <h2 id="name-authors-addresses">
+<a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Franziskus Kiefer</span></div>
+<div dir="auto" class="left"><span class="org">Cryspen</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:franziskuskiefer@gmail.com" class="email">franziskuskiefer@gmail.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Karthikeyan Bhargavan</span></div>
+<div dir="auto" class="left"><span class="org">Cryspen</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:karthik.bhargavan@gmail.com" class="email">karthik.bhargavan@gmail.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Richard L. Barnes</span></div>
+<div dir="auto" class="left"><span class="org">Cisco</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:rlb@ipv.sx" class="email">rlb@ipv.sx</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Joël Alwen</span></div>
+<div dir="auto" class="left"><span class="org">AWS Wickr</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:alwenjo@amazon.com" class="email">alwenjo@amazon.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Marta Mularczyk</span></div>
+<div dir="auto" class="left"><span class="org">AWS Wickr</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:mulmarta@amazon.ch" class="email">mulmarta@amazon.ch</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
