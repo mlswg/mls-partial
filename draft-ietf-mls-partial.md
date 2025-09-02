@@ -9,13 +9,13 @@ number:
 date:
 consensus: false
 v: 3
-area: Security
-workgroup: Network Working Group
+area: "Security"
+workgroup: "Messaging Layer Security"
 keyword: Internet-Draft
 venue:
-  group: MLS WG
-  mail: mls@ietf.org
-  github: mlswg/mls-partial
+  group: "Messaging Layer Security"
+  mail: "mls@ietf.org"
+  github: "mlswg/mls-partial"
 
 author:
  -  ins: F. Kiefer
