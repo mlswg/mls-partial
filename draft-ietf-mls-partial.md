@@ -562,7 +562,7 @@ group, since it replaces the linear-scale ratchet tree with two log-scale
 membership proofs. Partial MLS does not address the potentially linear scaling of
 Commit messages; in fact, it makes Commits spartially bigger. There are other
 approaches to reducing Commit sizes, e.g., the SplitCommit approach in
-{{?I-D.mularczyk-mls-splitmls}}.  These approaches can be cleanly integrated
+{{?I-D.mularczyk-mls-splitcommit}}.  These approaches can be cleanly integrated
 with Partial MLS via the AnnotatedCommit structure.  {{download-cost}} summarizes
 the scaling of the amount of data that a client needs to download in order to
 perform various MLS operations.  Sending a Commit requires linear-scale work in
@@ -689,6 +689,172 @@ This document makes no request of IANA.
 
 --- back
 
+# Test Vectors
+
+This section provides a set of test vectors that implementations can use to
+verify that they correctly implement Partial MLS. In addition to test vectors
+for joining and processing commits as a partial client, this section includes
+test vectors for membership proofs, partial tree operations,
+sender-authenticated messages, and the syntax of the new structures defined in
+this document.
+
+The vectors included in this document cover the MTI MLS ciphersuite,
+`MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519`. Full test vectors are
+available in the GitHub repository for this specification:
+<https://github.com/mlswg/mls-partial/tree/main/test-vectors>.
+
+Most values are either numeric values or byte strings. Numeric values are
+represented as hex values, prefixed with `0x`. Byte strings are represented in
+hex encoding. Descriptive fields, such as message types, are represented as
+strings.
+
+Line breaks and whitespace within values are inserted to conform to the width
+requirements of the RFC format. They should be removed before use.
+
+## Membership Proofs
+
+These vectors exercise the construction and encoding of `MembershipProof`
+objects. For each case, we provide:
+
+* `cipher_suite`: The MLS ciphersuite.
+
+* `tree_hash`: The root tree hash of the ratchet tree.
+
+* `proofs`: A list of membership proofs.
+
+{::include test-vectors/test-vector-partial-membership-proofs-spec.md}
+
+## Partial Client UpdatePath Handling
+
+These vectors exercise the computation of a commit secret from an `UpdatePath`
+without a full ratchet tree. For each case, we provide:
+
+* `cipher_suite`: The MLS ciphersuite.
+
+* `update_path`: The encoded UpdatePath.
+
+* `tree_hash_after`: The root tree hash after the commit is applied.
+
+* `resolution_index`: The index of the ciphertext to select from the
+  `encrypted_path_secret` vector.
+
+* `sender_membership_proof_after`: A membership proof for the sender in the
+  post-commit tree.
+
+* `receiver_membership_proof_after`: A membership proof for the receiver in the
+  post-commit tree.
+
+* `receiver_path_state`: The receiver's retained direct-path private state.
+
+* `commit_secret`: The expected commit secret.
+
+{::include test-vectors/test-vector-partial-tree-operations-spec.md}
+
+## Partial Message Syntax
+
+These vectors exercise the TLS presentation syntax for the new Partial MLS
+structures. For each case, we provide encoded instances of:
+
+* `CopathHash`
+
+* `MembershipProof`
+
+* `SenderAuthenticatedMessage<Welcome>`
+
+* `SenderAuthenticatedMessage<GroupInfo>`
+
+* `SenderAuthenticatedMessage<PublicMessage>`
+
+* `SenderAuthenticatedMessage<PrivateMessage>`
+
+* `AnnotatedWelcome`
+
+* `AnnotatedCommit`
+
+{::include test-vectors/test-vector-partial-message-syntax-spec.md}
+
+## Sender-Authenticated Messages
+
+These vectors exercise the use of membership proofs to authenticate signed MLS
+messages. For each case, we provide:
+
+* `cipher_suite`: The MLS ciphersuite.
+
+* `message_type`: The type of sender-authenticated message.
+
+* `sender_authenticated_message`: The encoded
+  `SenderAuthenticatedMessage<T>`.
+
+{::include test-vectors/test-vector-partial-sender-authenticated-messages-spec.md}
+
+## Annotated Welcomes
+
+These vectors exercise joining a group as a partial client using an
+`AnnotatedWelcome`. For each case, we provide:
+
+* `cipher_suite`: The MLS ciphersuite.
+
+* `external_psks`: The external PSKs used to decrypt the Welcome, if any.
+
+* `key_package`: The joining client's KeyPackage.
+
+* `signature_priv`, `encryption_priv`, and `init_priv`: The joining client's
+  private keys needed to process the Welcome.
+
+* `annotated_welcome`: The encoded `AnnotatedWelcome`.
+
+* `joiner_leaf_index`: The joining client's leaf index.
+
+* `epoch_authenticator`: The epoch authenticator derived by the partial client.
+
+{::include test-vectors/test-vector-partial-annotated-welcome-spec.md}
+
+## Annotated Commits
+
+These vectors exercise processing commits as a partial client using an
+`AnnotatedCommit`. For each case, we provide:
+
+* `cipher_suite`: The MLS ciphersuite.
+
+* `state_before`: The partial client's state before processing the commit.
+
+* `proposals`: Any proposals referenced by the commit.
+
+* `annotated_commit`: The encoded `AnnotatedCommit`.
+
+* `tree_hash_after`: The tree hash after the commit is applied.
+
+* `commit_secret`: The commit secret computed while processing the commit.
+
+* `epoch_authenticator_after`: The epoch authenticator for the next epoch.
+
+* `state_after`: The partial client's state after processing the commit.
+
+{::include test-vectors/test-vector-partial-annotated-commit-spec.md}
+
+## Partial Passive Client Scenarios
+
+These vectors exercise a partial client joining a group and following several
+epochs without storing the full ratchet tree. For each case, we provide:
+
+* `cipher_suite`: The MLS ciphersuite.
+
+* `external_psks`: The external PSKs used to decrypt the Welcome, if any.
+
+* `key_package`: The partial client's KeyPackage.
+
+* `signature_priv`, `encryption_priv`, and `init_priv`: The partial client's
+  private keys needed to join the group.
+
+* `annotated_welcome`: The `AnnotatedWelcome` used to join the group.
+
+* `initial_epoch_authenticator`: The epoch authenticator after joining.
+
+* `epochs`: A sequence of proposals, annotated commits, application messages,
+  and epoch authenticators for subsequent epochs.
+
+{::include test-vectors/test-vector-partial-passive-client-scenarios-spec.md}
+
 # Known Issues
 
 * To realize the completely optimized performance profile discussed on
@@ -715,4 +881,3 @@ This document makes no request of IANA.
 {:numbered="false"}
 
 TODO acknowledge.
-
