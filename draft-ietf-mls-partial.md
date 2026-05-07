@@ -209,7 +209,7 @@ just enough of information about the ratchet tree to process the message. These
 annotations can be computed by any party with knowledge of the group's ratchet
 tree, including the committer and sometimes the DS.
 
-~~~
+~~~ aasvg
 Full            Delivery              Partial    Partial    Full
 Client A        Service               Client B   Client C   Client D
    |                |                     |          |          |
