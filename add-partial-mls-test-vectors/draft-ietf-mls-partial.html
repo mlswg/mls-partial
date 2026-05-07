@@ -1473,39 +1473,78 @@ annotations can be computed by any party with knowledge of the group's ratchet
 tree, including the committer and sometimes the DS.<a href="#section-4-1" class="pilcrow">¶</a></p>
 <span id="name-overview-of-partial-mls"></span><div id="fig-overview">
 <figure id="figure-1">
-        <div class="alignLeft art-text artwork" id="section-4-2.1">
-<pre>
-Full            Delivery              Partial    Partial    Full
-Client A        Service               Client B   Client C   Client D
-   |                |                     |          |          |
-   | Commit         |                     |          |          |
-   | Welcome        |                     |          |          |
-   +---------------&gt;|                     |          |          |
-   |                | AnnotatedWelcome    |          |          |
-   |                | = Welcome + Proofs  |          |          |
-   |                +--------------------&gt;|          |          |
-   |                |                     |          |          |
-   |                | AnnotatedCommit     |          |          |
-   |                | = Commit + Proofs   |          |          |
-   |                |   + Resolution Info |          |          |
-   |                +-------------------------------&gt;|          |
-   |                |                     |          |          |
-   |                | Commit              |          |          |
-   |                +------------------------------------------&gt;|
-   |                |                     |          |          |
-   | PrivateMessage |                     |          |          |
-   +---------------&gt;|                     |          |          |
-   |                |                     |          |          |
-   |                | PrivateMessage      |          |          |
-   |                +------------------------------------------&gt;|
-   |                |                     |          |          |
-   |                | SenderAuthMessage   |          |          |
-   |                | = PrivateMessage    |          |          |
-   |                |   + Proof(A)        |          |          |
-   |                +--------------------&gt;|          |          |
-   |                +------------------------------------------&gt;|
-   |                |                     |          |          |
-</pre>
+        <div id="section-4-2.1">
+          <div class="alignLeft art-svg artwork" id="section-4-2.1.1">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="512" width="552" viewBox="0 0 552 512" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+              <path d="M 32,64 L 32,496" fill="none" stroke="black"></path>
+              <path d="M 168,64 L 168,496" fill="none" stroke="black"></path>
+              <path d="M 344,64 L 344,232" fill="none" stroke="black"></path>
+              <path d="M 344,248 L 344,280" fill="none" stroke="black"></path>
+              <path d="M 344,296 L 344,376" fill="none" stroke="black"></path>
+              <path d="M 344,392 L 344,472" fill="none" stroke="black"></path>
+              <path d="M 432,64 L 432,280" fill="none" stroke="black"></path>
+              <path d="M 432,296 L 432,376" fill="none" stroke="black"></path>
+              <path d="M 432,392 L 432,472" fill="none" stroke="black"></path>
+              <path d="M 520,64 L 520,496" fill="none" stroke="black"></path>
+              <path d="M 32,112 L 160,112" fill="none" stroke="black"></path>
+              <path d="M 168,160 L 336,160" fill="none" stroke="black"></path>
+              <path d="M 168,240 L 424,240" fill="none" stroke="black"></path>
+              <path d="M 168,288 L 512,288" fill="none" stroke="black"></path>
+              <path d="M 32,336 L 160,336" fill="none" stroke="black"></path>
+              <path d="M 168,384 L 512,384" fill="none" stroke="black"></path>
+              <path d="M 168,464 L 336,464" fill="none" stroke="black"></path>
+              <path d="M 168,480 L 512,480" fill="none" stroke="black"></path>
+              <polygon class="arrowhead" points="520,480 508,474.4 508,485.6" fill="black" transform="rotate(0,512,480)"></polygon>
+              <polygon class="arrowhead" points="520,384 508,378.4 508,389.6" fill="black" transform="rotate(0,512,384)"></polygon>
+              <polygon class="arrowhead" points="520,288 508,282.4 508,293.6" fill="black" transform="rotate(0,512,288)"></polygon>
+              <polygon class="arrowhead" points="432,240 420,234.4 420,245.6" fill="black" transform="rotate(0,424,240)"></polygon>
+              <polygon class="arrowhead" points="344,464 332,458.4 332,469.6" fill="black" transform="rotate(0,336,464)"></polygon>
+              <polygon class="arrowhead" points="344,160 332,154.4 332,165.6" fill="black" transform="rotate(0,336,160)"></polygon>
+              <polygon class="arrowhead" points="168,336 156,330.4 156,341.6" fill="black" transform="rotate(0,160,336)"></polygon>
+              <polygon class="arrowhead" points="168,112 156,106.4 156,117.6" fill="black" transform="rotate(0,160,112)"></polygon>
+              <g class="text">
+                <text x="20" y="36">Full</text>
+                <text x="164" y="36">Delivery</text>
+                <text x="336" y="36">Partial</text>
+                <text x="424" y="36">Partial</text>
+                <text x="500" y="36">Full</text>
+                <text x="28" y="52">Client</text>
+                <text x="64" y="52">A</text>
+                <text x="160" y="52">Service</text>
+                <text x="332" y="52">Client</text>
+                <text x="368" y="52">B</text>
+                <text x="420" y="52">Client</text>
+                <text x="456" y="52">C</text>
+                <text x="508" y="52">Client</text>
+                <text x="544" y="52">D</text>
+                <text x="68" y="84">Commit</text>
+                <text x="72" y="100">Welcome</text>
+                <text x="244" y="132">AnnotatedWelcome</text>
+                <text x="184" y="148">=</text>
+                <text x="224" y="148">Welcome</text>
+                <text x="264" y="148">+</text>
+                <text x="300" y="148">Proofs</text>
+                <text x="240" y="196">AnnotatedCommit</text>
+                <text x="184" y="212">=</text>
+                <text x="220" y="212">Commit</text>
+                <text x="256" y="212">+</text>
+                <text x="292" y="212">Proofs</text>
+                <text x="200" y="228">+</text>
+                <text x="252" y="228">Resolution</text>
+                <text x="316" y="228">Info</text>
+                <text x="204" y="276">Commit</text>
+                <text x="100" y="324">PrivateMessage</text>
+                <text x="236" y="372">PrivateMessage</text>
+                <text x="248" y="420">SenderAuthMessage</text>
+                <text x="184" y="436">=</text>
+                <text x="252" y="436">PrivateMessage</text>
+                <text x="200" y="452">+</text>
+                <text x="244" y="452">Proof(A)</text>
+                <text x="344" y="500">|</text>
+                <text x="432" y="500">|</text>
+              </g>
+            </svg><a href="#section-4-2.1.1" class="pilcrow">¶</a>
+</div>
 </div>
 <figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
 <a href="#name-overview-of-partial-mls" class="selfRef">Overview of Partial MLS</a>
