@@ -250,7 +250,7 @@ Client A        Service               Client B   Client C   Client D
    membership proofs for the sender and joiner.
 
 2. From each Commit that is generated in the group, an individual
-   AnnotatedCommit is generated for each partial client. An AnntatedCommit
+   AnnotatedCommit is generated for each partial client. An AnnotatedCommit
    comprises a normal MLS Commit message, together with membership proofs and
    the information that the partial client needs in order to process the update
    path in the Commit.
