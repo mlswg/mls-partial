@@ -4,7 +4,7 @@
 
 Messaging Layer Security                                       F. Kiefer
 Internet-Draft                                              K. Bhargavan
-Intended status: Informational                                   Cryspen
+Intended status: Standards Track                                 Cryspen
 Expires: 8 November 2026                                    R. L. Barnes
                                                                    Cisco
                                                                 J. Alwen
