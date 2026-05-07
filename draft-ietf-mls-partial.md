@@ -1,7 +1,7 @@
 ---
 title: "Partial MLS"
 abbrev: "Partial MLS"
-category: info
+category: std
 
 docname: draft-ietf-mls-partial-latest
 submissiontype: IETF  # also: "independent", "IAB", or "IRTF"
