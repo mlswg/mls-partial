@@ -1,1 +1,5 @@
-{}
+{
+  "dependencies": {
+    "aasvg": "0.4.3"
+  }
+}
