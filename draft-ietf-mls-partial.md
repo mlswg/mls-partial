@@ -115,9 +115,9 @@ a given tree hash.
 
 Partial client:
 : An MLS client that does not download, validate, and maintain a copy of the
-group's ratchet tree. A partial client does not store any public data about the
-group's ratchet tree, only the HPKE decryption keys associated to nodes on the
-client's direct path.
+group's ratchet tree. A partial client does not store public data about the
+group's entire ratchet tree, only the HPKE decryption keys associated to nodes
+on the client's direct path.
 
 Full client:
 : A normal MLS client, in possession of the full MLS ratchet tree for the group.
@@ -135,9 +135,10 @@ Annotated Commit:
 information that a partial client needs to process it.
 
 As in MLS, message structures are defined using the TLS presentation syntax
-{{!RFC8446}}. Unlike most MLS messages, however, these structures are not
-encapsulated in a signed or MAC'ed structure. So it may be more convenient for
-applications to encode these structures in application-specific encodings.
+{{!RFC8446}}. Unlike most MLS messages, however, the three structures defined in
+this specification are not signed or otherwise authenticated at the MLS layer;
+it may be more convenient for applications to encode these three structures in
+application-specific types that may provide desirable security properties.
 
 # Use Cases
 
