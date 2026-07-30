@@ -88,7 +88,7 @@ participate in a group with partial clients without any modification.
 
 The only modifications this document makes are to the local state stored at
 partial clients, namely the component of MLS that manages, synchronizes, and
-authenticates the public group state. We also defines some "annotations" that
+authenticates the public group state. We also define some "annotations" that
 need to be appended to group messages so that they can be processed by partial
 clients. Partial clients effectively run normal MLS algorithms, but with
 just-in-time delivery of exactly the subset of the public group state needed by
@@ -105,6 +105,8 @@ particular, is discussed in detail in {{security-considerations}}.
 
 {::boilerplate bcp14-tagged}
 
+This document uses terms from {{Section 2 of !RFC9420}}.
+
 Tree slice:
 : A tree slice is the direct path from a leaf node to the root, together with
 the tree hashes on the co-path.
@@ -115,15 +117,13 @@ a given tree hash.
 
 Partial client:
 : An MLS client that does not download, validate, and maintain a copy of the
-group's ratchet tree. A partial client does not store public data about the
-group's entire ratchet tree, only the HPKE decryption keys associated to nodes
-on the client's direct path.
+group's ratchet tree. A partial client does not store the full public data for the group's entire ratchet tree, only the HPKE decryption keys associated to nodes on the client's direct path.
 
 Full client:
 : A normal MLS client, in possession of the full MLS ratchet tree for the group.
 
 Sender-authenticated message:
-: A signed MLS message such as Welcome or PublicMessage, together with a
+: A signed MLS message such as a Welcome or PublicMessage, together with a
 membership proof that proves the sender's membership in the group.
 
 Annotated Welcome:
@@ -164,7 +164,7 @@ log-sized AnnotatedWelcome message and immediately obtain the media encryption
 keys.
 
 Such a client will not have authenticated the group when they join the meeting.
-However, applications often do not display identity information in such setting
+However, applications often do not display identity information in such settings
 anyway.  In "webinar" settings, it is common for attendee identities to be visible
 only to panelists and administrators, not to other attendees.  Partial MLS allows
 MLS to align with this privacy property.  If attendees join as partial clients,
@@ -239,6 +239,8 @@ Client A        Service               Client B   Client C   Client D
    |                | = PrivateMessage    |          |          |
    |                |   + Proof(A)        |          |          |
    |                +-------------------->|          |          |
+   |                +------------------------------->|          |
+   |                | PrivateMessage      |          |          |
    |                +------------------------------------------>|
    |                |                     |          |          |
 ~~~
@@ -422,8 +424,7 @@ the partial client cannot compute the resolution of the committer's copath, so
 they cannot determine which of the HPKECiphertext objects in the UpdatePath they
 should decrypt to obtain a path secret. Second, the partial client cannot compute
 the updated tree hash, since they don't have the full tree. An AnnotatedCommit
-provides these pieces of information, along with proof that the sender and
-receiver are both still in the group after the Commit.
+provides these pieces of information, along with proof that the sender is still in the group after the Commit, and that either the receiver is still in the group or has just been removed.
 
 ~~~ tls-syntax
 struct {
@@ -434,14 +435,14 @@ struct {
     optional<uint32> resolution_index;
 
     MembershipProof sender_membership_proof_after;
-    MembershipProof receiver_membership_proof_after;
+    optional<MembershipProof> receiver_membership_proof_after;
 } AnnotatedCommit;
 ~~~
 
 The fields in the AnnotatedCommit have the following semantics:
 
 `commit`:
-: An MLSMessage containing PrivateMessage or PublicMessage with `content_type`
+: An MLSMessage containing a PrivateMessage, PublicMessage, or SemiPrivateMessage {{?I-D.mahy-mls-semiprivatemessage}} with `content_type`
 `commit`.
 
 `sender_membership_proof`:
@@ -453,7 +454,7 @@ epoch in which the Commit is sent. This field MUST be present if the
 : The tree hash of the group's ratchet tree after the Commit has been applied.
 
 `resolution_index`:
-: This field specifies which HPKECiphertext in the relevant UpdatePathNode the
+: This field specifies which `encrypted_path_secret` in the relevant UpdatePathNode the
 recipient should use. This field MUST be included if and only if the Commit has
 a `path` field populated.
 
@@ -463,7 +464,7 @@ Commit has been applied.
 
 `receiver_membership_proof_after`:
 : A membership proof for the receiver of the Commit relative to the tree after the
-Commit has been applied.
+Commit has been applied. If the receiver has been removed, it MUST not be included.
 
 An AnnotatedCommit can be generated by any party that knows the group's ratchet
 tree (both before and after the Commit) and the indices of the sender and
@@ -494,11 +495,11 @@ A partial client processes an AnnotatedCommit in the following way:
     value), then the `sender_membership_proof` field MUST be absent, and the
     signature public key is looked up in the included Add proposal, as normal.
 
-  * The proposal list validation step is omitted, because a partial client doesn't
+  * The proposal list validation step is omitted, because ratchet tree processing of a partial client doesn't
     have sufficient information to check all of the validation rules.
 
   * When applying proposals, only the proposals that do not modify the tree are
-    applied, in particular, PreSharedKey and GroupContextExtensions proposals.
+    applied, in particular, PreSharedKey, GroupContextExtensions, AppDataUpdate, and AppEphemeral (see {{?I-D.ietf-mls-extensions}}) proposals.
 
   * Likewise, the creation of the new ratchet tree is omitted.
 
@@ -563,13 +564,13 @@ send annotations in a way that they can be cleanly ignored by full clients.
 Partial MLS substantially reduces the amount of data required to join an MLS
 group, since it replaces the linear-scale ratchet tree with two log-scale
 membership proofs. Partial MLS does not address the potentially linear scaling of
-Commit messages; in fact, it makes Commits spartially bigger. There are other
+Commit messages; in fact, it makes Commits substantially larger. There are other
 approaches to reducing Commit sizes, e.g., the SplitCommit approach in
 {{?I-D.mularczyk-mls-splitcommit}}.  These approaches can be cleanly integrated
 with Partial MLS via the AnnotatedCommit structure.  {{download-cost}} summarizes
 the scaling of the amount of data that a client needs to download in order to
 perform various MLS operations.  Sending a Commit requires linear-scale work in
-any case.
+any case. N is the number of members in the MLS group.
 
 | Operation       | RFC MLS | Partial MLS | Split Commits | Partial + Split |
 |:----------------|:-------:|:-----------:|:-------------:|:---------------:|
