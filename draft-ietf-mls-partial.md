@@ -692,7 +692,7 @@ This document registers three MLS Wire Formats to make it easier to include the 
 ## sender_authentication_message MLS Wire Format
 
 - Value: 0x0009 (suggested)
-- Name: `sender_authentication_message`
+- Name: `sender_authenticated_message`
 - Recommended: Y
 - Reference: RFCXXXX
 
