@@ -687,7 +687,29 @@ been omitted for now in the interest of avoiding changes to full endpoints.
 
 # IANA Considerations
 
-This document makes no request of IANA.
+This document registers three MLS Wire Formats to make it easier to include the structures in this specification in future specifications. The use of these Wire Formats is not required.
+
+## sender_authenticated_message MLS Wire Format
+
+- Value: 0x0009 (suggested)
+- Name: `sender_authenticated_message`
+- Recommended: Y
+- Reference: RFCXXXX
+
+## annotated_welcome MLS Wire Format
+
+- Value: 0x000A (suggested)
+- Name: `annotated_welcome`
+- Recommended: Y
+- Reference: RFCXXXX
+
+## annotated_commit MLS Wire Format
+
+- Value: 0x000B (suggested)
+- Name: `annotated_commit`
+- Recommended: Y
+- Reference: RFCXXXX
+
 
 --- back
 
