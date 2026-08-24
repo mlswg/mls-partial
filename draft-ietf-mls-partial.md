@@ -689,7 +689,7 @@ been omitted for now in the interest of avoiding changes to full endpoints.
 
 This document registers three MLS Wire Formats to make it easier to include the structures in this specification in future specifications. The use of these Wire Formats is not required.
 
-## sender_authentication_message MLS Wire Format
+## sender_authenticated_message MLS Wire Format
 
 - Value: 0x0009 (suggested)
 - Name: `sender_authenticated_message`
