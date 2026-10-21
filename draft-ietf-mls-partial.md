@@ -360,6 +360,12 @@ For a PublicMessage or PrivateMessage, this is the tree hash for the epoch
 indicated in the FramedContent. For a GroupInfo or Welcome, it is the tree hash
 in the object itself.
 
+For a PublicMessage or PrivateMessage, the `sender_type` of the `Sender` in the
+FramedContent MUST be `member`, and its `leaf_index` MUST be equal to the
+`leaf_index` field of the `sender_membership_proof`. For a GroupInfo or
+Welcome, the `signer` field of the GroupInfo MUST be equal to the `leaf_index`
+field of the `sender_membership_proof`.
+
 # Joining via Annotated Welcome
 
 An AnnotatedWelcome message provides a client joining a group with membership
