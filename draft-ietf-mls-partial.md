@@ -513,7 +513,9 @@ A partial client processes an AnnotatedCommit in the following way:
 
     * Determine the index `update_path_index` of the lowest common ancestor
       among the non-blank nodes in the committer's direct path, as provided in
-      the `sender_membership_proof_after` field.
+      the `sender_membership_proof_after` field, not counting the committer's
+      leaf node. That is, `update_path_index` is the index of the lowest common
+      ancestor in the committer's filtered direct path.
 
     * From the entry at index `update_path_index` of the `nodes` vector in the
       UpdatePath, select the HPKECiphertext at index `resolution_index` from the
@@ -522,7 +524,9 @@ A partial client processes an AnnotatedCommit in the following way:
     * Identify the next non-blank node in the recipient's direct path under the
       lowest common ancestor, using the direct path provided in the
       `receiver_membership_proof_after` field. Retrieve the private HPKE
-      decryption key for this node.
+      decryption key for this node. If the recipient's leaf index is in this
+      node's `unmerged_leaves`, or if there is no such node, retrieve the
+      private HPKE decryption key for the recipient's leaf instead.
 
     * Decrypt the encrypted path secret as normal, using the tree hash in the
       `tree_hash_after` field in the provisional GroupContext.
