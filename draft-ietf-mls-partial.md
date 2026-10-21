@@ -333,6 +333,13 @@ hash recomputed in this way is equal to the given tree hash.
 Two membership proofs are said to reference the same tree if their `n_leaves`
 fields are equal, and they produce identical root tree hashes.
 
+Before using a LeafNode taken from a membership proof, a partial client MUST
+validate it as described in {{Section 7.3 of RFC9420}}, including validating
+its credential as described in {{Section 5.3.1 of RFC9420}}. A partial client
+cannot perform the checks in {{Section 7.3 of RFC9420}} that require the full
+ratchet tree, such as the uniqueness of `signature_key` and `encryption_key`;
+see {{security-considerations}}.
+
 # Sender-Authenticated Messages
 
 For several types of message, MLS authenticates that a message was created by
@@ -403,7 +410,10 @@ A partial client processes an AnnotatedWelcome in the following way:
      produced by the membership proofs.
 
    * The `my_leaf` value is taken from the the `leaf_index` field of the
-     `joiner_membership_proof`, instead of found by searching the tree.
+     `joiner_membership_proof`, instead of found by searching the tree. The
+     LeafNode in the `joiner_membership_proof` MUST be identical to the
+     `leaf_node` in the joiner's KeyPackage; otherwise, the client MUST reject
+     the Welcome.
 
 # Joining via External Commit
 
