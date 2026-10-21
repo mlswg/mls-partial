@@ -491,7 +491,9 @@ A partial client processes an AnnotatedCommit in the following way:
 
   * If the `sender_type` is set to `new_member_commit` (the only other valid
     value), then the `sender_membership_proof` field MUST be absent, and the
-    signature public key is looked up in the included Add proposal, as normal.
+    signature public key is taken from the LeafNode in the Commit's `path`, as
+    in {{Section 6.1 of RFC9420}}. The LeafNode in the
+    `sender_membership_proof_after` MUST be identical to that LeafNode.
 
   * The proposal list validation step is omitted, because a partial client doesn't
     have sufficient information to check all of the validation rules.
