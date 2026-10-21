@@ -322,6 +322,20 @@ struct {
 } MembershipProof;
 ~~~
 
+A client MUST reject a MembershipProof unless all of the following hold:
+
+* `n_leaves` is a power of two, since the ratchet tree is always full ({{Section
+  7.7 of RFC9420}}), and `leaf_index` is less than `n_leaves`.
+
+* `direct_path_nodes` contains log2(`n_leaves`) + 1 entries, and
+  `copath_hashes` contains log2(`n_leaves`) entries.
+
+* The first entry of `direct_path_nodes` is present and is a LeafNode, and every
+  other entry is either absent (a blank node) or a ParentNode.
+
+* Every `hash_value` in `copath_hashes` is as long as the output of the hash
+  function of the group's ciphersuite.
+
 From these values, the root tree hash of the ratchet tree can be recomputed,
 following the same recursive algorithm specified in {{Section 7.8 of RFC9420}}.
 The selection of nodes and subtree hashes provides the precise collection of
@@ -478,7 +492,10 @@ A partial client processes an AnnotatedCommit in the following way:
 
 2. Verify that the `sender_membership_proof_after` and
    `receiver_membership_proof_after` reference the same tree, and that they are
-   valid relative to `tree_hash_after`.
+   valid relative to `tree_hash_after`. The `leaf_index` field of
+   `receiver_membership_proof_after` MUST be equal to the client's own leaf
+   index. If `sender_membership_proof` is present, its `leaf_index` field MUST
+   be equal to the `leaf_index` field of `sender_membership_proof_after`.
 
 3. Process the Commit using the procedure defined in {{Section 12.4.2 of
    RFC9420}}, with the following modifications:
