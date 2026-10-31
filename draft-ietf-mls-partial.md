@@ -117,7 +117,9 @@ a given tree hash.
 
 Partial client:
 : An MLS client that does not download, validate, and maintain a copy of the
-group's ratchet tree. A partial client does not store the full public data for the group's entire ratchet tree, only the HPKE decryption keys associated to nodes on the client's direct path.
+group's ratchet tree. A partial client does not store the full public data for
+the group's entire ratchet tree, only the HPKE decryption keys associated to
+nodes on the client's direct path.
 
 Full client:
 : A normal MLS client, in possession of the full MLS ratchet tree for the group.
@@ -424,7 +426,9 @@ the partial client cannot compute the resolution of the committer's copath, so
 they cannot determine which of the HPKECiphertext objects in the UpdatePath they
 should decrypt to obtain a path secret. Second, the partial client cannot compute
 the updated tree hash, since they don't have the full tree. An AnnotatedCommit
-provides these pieces of information, along with proof that the sender is still in the group after the Commit, and that either the receiver is still in the group or has just been removed.
+provides these pieces of information, along with proof that the sender is still
+in the group after the Commit, and that either the receiver is still in the
+group or has just been removed.
 
 ~~~ tls-syntax
 struct {
@@ -442,7 +446,8 @@ struct {
 The fields in the AnnotatedCommit have the following semantics:
 
 `commit`:
-: An MLSMessage containing a PrivateMessage, PublicMessage, or SemiPrivateMessage {{?I-D.mahy-mls-semiprivatemessage}} with `content_type`
+: An MLSMessage containing a PrivateMessage, PublicMessage, or
+SemiPrivateMessage {{?I-D.mahy-mls-semiprivatemessage}} with `content_type`
 `commit`.
 
 `sender_membership_proof`:
@@ -454,9 +459,9 @@ epoch in which the Commit is sent. This field MUST be present if the
 : The tree hash of the group's ratchet tree after the Commit has been applied.
 
 `resolution_index`:
-: This field specifies which `encrypted_path_secret` in the relevant UpdatePathNode the
-recipient should use. This field MUST be included if and only if the Commit has
-a `path` field populated.
+: This field specifies which `encrypted_path_secret` in the relevant
+UpdatePathNode the recipient should use. This field MUST be included if and only
+if the Commit has a `path` field populated.
 
 `sender_membership_proof_after`:
 : A membership proof for the sender of the Commit relative to the tree after the
@@ -495,11 +500,13 @@ A partial client processes an AnnotatedCommit in the following way:
     value), then the `sender_membership_proof` field MUST be absent, and the
     signature public key is looked up in the included Add proposal, as normal.
 
-  * The proposal list validation step is omitted, because ratchet tree processing of a partial client doesn't
-    have sufficient information to check all of the validation rules.
+  * The proposal list validation step is omitted, because ratchet tree
+processing of a partial client doesn't have sufficient information to check all
+of the validation rules.
 
   * When applying proposals, only the proposals that do not modify the tree are
-    applied, in particular, PreSharedKey, GroupContextExtensions, AppDataUpdate, and AppEphemeral (see {{?I-D.ietf-mls-extensions}}) proposals.
+    applied, in particular, PreSharedKey, GroupContextExtensions, AppDataUpdate,
+    and AppEphemeral (see {{?I-D.ietf-mls-extensions}}) proposals.
 
   * Likewise, the creation of the new ratchet tree is omitted.
 
