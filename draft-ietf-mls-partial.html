@@ -1678,6 +1678,11 @@ relative to the group's tree hash for the epoch in which the message was sent.
 For a PublicMessage or PrivateMessage, this is the tree hash for the epoch
 indicated in the FramedContent. For a GroupInfo or Welcome, it is the tree hash
 in the object itself.<a href="#section-7-4" class="pilcrow">¶</a></p>
+<p id="section-7-5">For a PublicMessage or PrivateMessage, the <code>sender_type</code> of the <code>Sender</code> in the
+FramedContent <span class="bcp14">MUST</span> be <code>member</code>, and its <code>leaf_index</code> <span class="bcp14">MUST</span> be equal to the
+<code>leaf_index</code> field of the <code>sender_membership_proof</code>. For a GroupInfo or
+Welcome, the <code>signer</code> field of the GroupInfo <span class="bcp14">MUST</span> be equal to the <code>leaf_index</code>
+field of the <code>sender_membership_proof</code>.<a href="#section-7-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="joining-via-annotated-welcome">
