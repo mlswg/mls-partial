@@ -278,14 +278,75 @@ other members of its status (partial or full), so that the proper annotations ca
 be generated when it is partial. It is harmless for a full client to receive an
 AnnotatedCommit; the annotations can simply be ignored.
 
-# Upgrading and Downgrading
+# Negotiating Partial MLS
 
-A partial client can upgrade to being a full client at any time by downloading the
-full ratchet tree; a full client can downgrade by deleting its local copy of the
-ratchet tree.  Before a partial client uses a copy of the ratchet tree to upgrade
+This specification defines two new MLS extensions for signaling support of Partial MLS.
+When the `partial_mls` extension type is present in `LeafNode.capabilities.extensions`, it indicates that the client implements this specification and can become a partial client.
+When the `partial_mls` extension type is present in the `LeafNode.extensions`, it indicates that the client is only prepared to operate as a partial client.
+The `partial_mls` extension type contains no content.
+
+~~~
+struct {} PartialMlsExtension;
+
+PartialMlsExtension partial_mls;
+
+enum Bool {
+  false(0),
+  true(1),
+  (255)
+}
+
+struct {
+  Bool ds_annotates;
+} PartialMlsAnnotationExtension;
+
+PartialMlsAnnontationExtension partial_mls_annotation;
+~~~
+
+When the `partial_mls_annotation` extension type is present in the `LeafNode.capabilities.extensions`, it indicates that the client can annotate its own messages for Partial MLS clients.
+When the `partial_mls_annotation` extension type is present in the GroupContext, it indicates that the MLS group is using Partial MLS for any clients with the `partial_mls` extension in its `LeafNode.extensions`.
+The `partial_mls_annotation.ds_annotates` field in the GroupContext extensions indicates if the annotation will be provided by the DS (`ds_annotates` is true), or by full clients (`ds_annotates` is false).
+When `ds_annotates` is false, every client in the room MUST have either a `partial_mls` extension (indicating a Partial MLS client), or a `partial_mls_annotation` extension (indicating an annotating Full MLS client) in their `LeafNode.capabilities.extensions`.
+
+The `required_capabilities. extensions` of the GroupContext MUST NOT contain a `partial_mls` extension.
+This would mean that all clients must be Partial MLS clients, which is impossible.
+
+The `required_capabilities. extensions` of the GroupContext MUST NOT contain a `partial_mls_annotation`.
+This would require all clients to be able generation annotations for Partial MLS clients, when no such Partial MLS clients could possibly be in the group.
+
+## Upgrading and Downgrading
+
+During a single epoch, a client is either partial client or a full client, with one exception (see {{self-upgrade}}).
+
+A partial client can upgrade to being a full client at any time by downloading the full ratchet tree, and then sending an Update proposal that removes the `partial_mls` extension from its own `LeafNode.extensions`.
+It only becomes a full client once the proposal is committed.
+
+A full client can downgrade by sending an Update proposal that adds the `partial_mls` extension to its own `LeafNode.extensions`.
+Once it the proposal is committed, it can delete its local copy of the ratchet tree.
+A full client MUST NOT send a Commit which causes it to become a Partial MLS client.
+
+Before a partial client uses a copy of the ratchet tree to upgrade
 to being a full client, it MUST verify the integrity of the ratchet tree in the
 same way it would when joining as a full client, following the steps in
 {{Section 12.4.3.1 of RFC9420}}.
+
+## Self Upgrading {#self-upgrade}
+
+A partial client that downloads and verifies the full ratchet tree can send a Commit in the current epoch under the following conditions:
+
+- it has authorization from the application using MLS;
+- the Commit includes an UpdatePath that removes the `partial_mls` extension from `LeafNode.extensions`;
+- if the `partial_mls_annotation.ds_annotates` field in the GroupContext extensions is true, the former partial client:
+    - is capable of generating annotations,
+    - includes a `partial_mls_annotation` extension in the new `LeafNode.extensions`, and
+    - attaches AnnotatedCommit (and if appropriate AnnotatedWelcome) messages for every other Partial MLS client; and
+- the Commit is accepted by the group.
+
+## Disabling Partial MLS
+
+There is no defined mechanism to force existing Partial MLS clients to upgrade to Full MLS clients.
+A client wishing to disable Partial MLS support in a group MUST remove any remaining Partial MLS clients before removing the `partial_mls_annotation` extension from the GroupContext.
+A client MAY instead send a ReInit proposal to create a group that does not support Partial MLS clients.
 
 # Membership Proofs and Partial Trees
 
