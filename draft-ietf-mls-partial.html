@@ -14,7 +14,7 @@
        The Messaging Layer Security (MLS) protocol provides efficient asynchronous
 group key establishment for large groups with up to thousands of clients. In
 MLS, any member can commit a change to the group, and consequently, all members
-must download, validate, and maintain the full group state, which can incur a
+must download, validate, and maintain the full group state, which can incur
 significant communication and computational costs, especially when joining a
 group. This document defines an MLS extension to support &quot;partial MLS clients&quot; that don't
 undertake these costs. A partial client cannot commit changes to the group, and
@@ -23,22 +23,23 @@ but is otherwise able to participate in the group. In exchange for these
 limitations, a partial MLS client can participate in an MLS group with significantly
 lower requirements in terms of download, memory, and processing. 
     " name="description">
-<meta content="xml2rfc 3.33.0" name="generator">
+<meta content="xml2rfc 3.35.0" name="generator">
 <meta content="Internet-Draft" name="keyword">
 <meta content="draft-ietf-mls-partial-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.33.0
-    Python 3.12.13
-    ConfigArgParse 1.7
+  xml2rfc 3.35.0
+    Python 3.14.10
+    ConfigArgParse 1.9.0
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
-    lxml 6.0.2
-    platformdirs 4.9.6
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.14.3
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.7.0
+    wcwidth 0.9.4
 -->
 <link href="draft-ietf-mls-partial.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -74,7 +75,6 @@ lower requirements in terms of download, memory, and processing.
   src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
   unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
-
 @font-face {
   font-family: 'Lora';
   font-style: italic;
@@ -123,7 +123,6 @@ lower requirements in terms of download, memory, and processing.
   src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
-
 @font-face {
   font-family: 'Lora';
   font-style: normal;
@@ -188,7 +187,6 @@ lower requirements in terms of download, memory, and processing.
   font-display: swap;
   src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
 }
 
 @font-face {
@@ -305,16 +303,19 @@ h1, h2, h3, h4, h5, h6 {
   font-size-adjust: 0.5;
   color: var(--title-color);
 }
-h1#title {
-  font-size: 32px;
-  line-height: 40px;
-  clear: both;
-}
-h1#title, h1#rfcnum {
-  margin: 1.5em 0 0.2em;
-}
-h1#rfcnum + h1#title {
-  margin: 0.2em 0;
+h1 {
+  &#title {
+    font-size: 32px;
+    line-height: 40px;
+    clear: both;
+    margin: 1.5em 0 0.2em;
+  }
+  &#rfcnum {
+    margin: 1.5em 0 0.2em;
+    & + h1#title {
+      margin: 0.2em 0;
+    }
+  }
 }
 
 h1, h2, h3 {
@@ -334,10 +335,10 @@ h4, h5, h6 {
 #abstract+p {
   font-size: 18px;
   line-height: 24px;
-}
-#abstract+p code, #abstract+p samp, #abstract+p tt {
-  font-size: 16px;
-  line-height: 0;
+  & code, & samp, & tt {
+    font-size: 16px;
+    line-height: 0;
+  }
 }
 
 p {
@@ -348,59 +349,59 @@ p {
 div {
   margin: 0;
 }
-.alignRight.art-text {
-  background-color: var(--highlight-color);
-  border: 1px solid var(--line-color);
-  border-radius: 3px;
-  padding: 0.5em 1em 0;
-  margin-bottom: 0.5em;
-}
-.alignRight.art-text pre {
-  padding: 0;
-  width: auto;
-}
 .alignRight {
   margin: 1em 0;
-}
-.alignRight > *:first-child {
-  border: none;
-  margin: 0;
-  float: right;
-  clear: both;
-}
-.alignRight > *:nth-child(2) {
-  clear: both;
-  display: block;
-  border: none;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    margin: 0;
+    float: right;
+    clear: both;
+  }
+  & > *:nth-child(2) {
+    clear: both;
+    display: block;
+    border: none;
+  }
 }
 svg {
   display: block;
-}
-/* font-family isn't space-separated, but =~ will have to do */
-svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
-  font-family: var(--font-mono);
-}
-.alignCenter.art-text {
-  background-color: var(--highlight-color);
-  border: 1px solid var(--line-color);
-  border-radius: 3px;
-  padding: 0.5em 1em 0;
-  margin-bottom: 0.5em;
-}
-.alignCenter.art-text pre {
-  padding: 0;
-  width: auto;
+  /* font-family isn't space-separated, but =~ will have to do */
+  &[font-family~="monospace" i], & [font-family~="monospace" i] {
+    font-family: var(--font-mono);
+  }
 }
 .alignCenter {
   margin: 1em 0;
-}
-.alignCenter > *:first-child {
-  border: none;
-  /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
-     support flexbox yet.
-  */
-  display: table;
-  margin: 0 auto;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+       support flexbox yet.
+    */
+    display: table;
+    margin: 0 auto;
+  }
 }
 
 /* lists */
@@ -438,26 +439,25 @@ dl {
     --indent: 5ch;
     & > dt {
       min-width: calc(var(--indent) - 2ch);
+      float: none;
     }
-  }
-  &.olPercent > dt {
-    float: none;
   }
 
   dl > dd > & {
     margin-top: 0.5em;
     margin-bottom: 0;
   }
-}
-dl:not(.dlNewline) > dt {
-  float: left;
-  margin-right: 2ch;
-  min-width: 8ch;
-}
-dl > dd {
-  margin-bottom: .8em;
-  margin-left: var(--indent) !important; /* stupid element overrides */
-  min-height: 2ex;
+
+  &:not(.dlNewline) > dt {
+    float: left;
+    margin-right: 2ch;
+    min-width: 8ch;
+  }
+  & > dd {
+    margin-bottom: .8em;
+    margin-left: var(--indent) !important; /* stupid element overrides */
+    min-height: 2ex;
+  }
 }
 :is(dl.compact, .dlCompact) > dd {
   margin-bottom: 0;
@@ -473,20 +473,22 @@ dl > dd {
 }
 
 /* links */
-a, a[href].selfRef:hover {
+a {
   text-decoration: none;
+  &[href] {
+    color: var(--link-color);
+    &:hover { text-decoration: underline; }
+    &.selfRef {
+      color: var(--text-color);
+      &:hover {
+        text-decoration: none;
+        background-color: var(--highlight-color);
+      }
+    }
+  }
 }
-a[href] {
-  color: var(--link-color);
-}
-a[href].selfRef, .iref + a[href].internal {
+.iref + a[href].internal {
   color: var(--text-color);
-}
-a[href]:hover {
-  text-decoration: underline;
-}
-a[href].selfRef:hover {
-  background-color: var(--highlight-color);
 }
 a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
   white-space: nowrap;
@@ -522,9 +524,9 @@ img {
 figure {
   margin: 0.5em 0;
   padding: 0;
-}
-figure blockquote {
-  margin: 0.8em 0.4em 0.4em;
+  & blockquote {
+    margin: 0.8em 0.4em 0.4em;
+  }
 }
 figcaption, caption {
   font-style: italic;
@@ -534,17 +536,19 @@ figcaption, caption {
 }
 @media screen {
   /* Auto-collapse boilerplate. */
-  :is(#status-of-memo, #copyright) p {
-    margin: -2px 0;
-    max-height: 0;
-    transition: max-height 2s ease, margin 0.5s ease 0.5s;
-    overflow: hidden;
-  }
-  :is(#status-of-memo, #copyright):hover p,
-  :is(#status-of-memo, #copyright) h2:target ~ p {
-    margin: 0.5em 0;
-    max-height: 500px;
-    overflow: auto;
+  :is(#status-of-memo, #copyright) {
+    & p {
+      margin: -2px 0;
+      max-height: 0;
+      transition: max-height 2s ease, margin 0.5s ease 0.5s;
+      overflow: hidden;
+    }
+    &:hover p,
+    & h2:target ~ p {
+      margin: 0.5em 0;
+      max-height: 500px;
+      overflow: auto;
+    }
   }
   pre, svg {
     display: inline-block;
@@ -594,25 +598,17 @@ table {
   max-width: 100%;
   margin: 0 0 1em;
   border-collapse: collapse;
-}
-table.right {
-  margin-left: auto;
-}
-table.center {
-  margin-left: auto;
-  margin-right: auto;
-}
-table.left {
-  margin-right: auto;
-}
-table .text-left {
-  text-align: left;
-}
-table .text-center {
-  text-align: center;
-}
-table .text-right {
-  text-align: right;
+  &.right { margin-left: auto; }
+  &.center { margin-left: auto; margin-right: auto; }
+  &.left { margin-right: auto; }
+  & .text-left { text-align: left; }
+  & .text-center { text-align: center; }
+  & .text-right { text-align: right; }
+  & caption {
+    margin: 0;
+    padding: 3px 0 3px 1em;
+  }
+  & p { margin: 0; }
 }
 
 thead, tbody {
@@ -632,13 +628,6 @@ th {
 :is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
   background-color: var(--highlight-color);
 }
-table caption {
-  margin: 0;
-  padding: 3px 0 3px 1em;
-}
-table p {
-  margin: 0;
-}
 
 /* pilcrow */
 a.pilcrow {
@@ -649,18 +638,16 @@ a.pilcrow {
     color: var(--pilcrow-weak);
     &:hover { text-decoration: none; }
   }
-}
-@media not print {
-  :hover > a.pilcrow, a.pilcrow:focus {
-    opacity: 1;
+  @media not print {
+    :hover > &, &:focus {
+      opacity: 1;
+    }
+    &[href]:hover {
+      color: var(--pilcrow-strong);
+      background-color: transparent;
+    }
   }
-  a.pilcrow[href]:hover {
-    color: var(--pilcrow-strong);
-    background-color: transparent;
-  }
-}
-@media print {
-  a.pilcrow {
+  @media print {
     display: none;
   }
 }
@@ -719,9 +706,9 @@ sub, sup {
   font-size: 0.9em;
   font-style: italic;
   margin-top: 2em;
-}
-.docInfo .prepared {
-  float: right;
+  & .prepared {
+    float: right;
+  }
 }
 
 /* table of contents */
@@ -811,23 +798,27 @@ hr.addr {
   max-width: calc(100% - 16px);
 }
 @media (min-width: 500px) {
-  #authors-addresses > section {
-    column-count: 2;
-    column-gap: 20px;
-  }
-  #authors-addresses > section > h2 {
-    column-span: all;
-  }
-  /* hack for break-inside: avoid-column */
-  #authors-addresses address {
-    display: inline-block;
-    break-inside: avoid-column;
+  #authors-addresses {
+    & > section {
+      column-count: 2;
+      column-gap: 20px;
+    }
+    & > section > h2 {
+      column-span: all;
+    }
+    /* hack for break-inside: avoid-column */
+    & address {
+      display: inline-block;
+      break-inside: avoid-column;
+    }
   }
 }
 
 /* Comments */
-.rfcEditorRemove p:first-of-type {
-  font-style: italic;
+.rfcEditorRemove {
+  & p:first-of-type {
+    font-style: italic;
+  }
 }
 .cref {
   background-color: rgba(249, 232, 105, 0.3);
@@ -838,19 +829,21 @@ hr.addr {
 }
 
 @media screen {
-  #toc nav {
-    font-family: var(--font-title);
-    font-weight: 360;
-    & > ul { margin-bottom: 2em; }
-    & ul {
-      margin: 0 0 0 4px;
-      & :is(p, li) {
-        margin: 2px 0;
+  #toc {
+    & nav {
+      font-family: var(--font-title);
+      font-weight: 360;
+      & > ul { margin-bottom: 2em; }
+      & ul {
+        margin: 0 0 0 4px;
+        & :is(p, li) {
+          margin: 2px 0;
+        }
       }
     }
-  }
-  #toc a.toplink {
-    float: right;
+    & a.toplink {
+      float: right;
+    }
   }
 }
 @media not screen {
@@ -871,54 +864,54 @@ hr.addr {
     margin: 0;
     border-bottom: 1px solid #ccc;
     opacity: 0.6;
-  }
-  #toc h2 {
-    margin: 0;
-    padding: 2px 0 2px 6px;
-    padding-right: 1em;
-    font-size: 18px;
-    line-height: 24px;
-    min-width: 190px;
-    text-align: right;
-    background-color: #444;
-    color: white;
-    cursor: pointer;
-    &::before { /* css hamburger */
-      float: right;
-      position: relative;
-      width: 1em;
-      height: 1px;
-      left: -164px;
-      margin: 8px 0 0 0;
-      background: white none repeat scroll 0 0;
-      box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
-      content: "";
+    & h2 {
+      margin: 0;
+      padding: 2px 0 2px 6px;
+      padding-right: 1em;
+      font-size: 18px;
+      line-height: 24px;
+      min-width: 190px;
+      text-align: right;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      &::before { /* css hamburger */
+        float: right;
+        position: relative;
+        width: 1em;
+        height: 1px;
+        left: -164px;
+        margin: 8px 0 0 0;
+        background: white none repeat scroll 0 0;
+        box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+        content: "";
+      }
     }
-  }
-  #toc nav {
-    display: none;
-    background-color: var(--background-color);
-    padding: 0.5em 1em 1em;
-    overflow: auto;
-    overscroll-behavior: contain;
-    height: calc(100vh - 48px);
-    border-left: 1px solid #ddd;
-  }
-  #toc.active {
-    opacity: 1;
-    & nav { display: block; }
-  }
-  /* Make the collapsed ToC header render white on gray also when it's a link */
-  #toc h2 a,
-  #toc h2 a:is(:link, :focus, :hover),
-  #toc a.toplink,
-  #toc a.toplink:hover {
-    color: white;
-    background-color: #444;
-    text-decoration: none;
-  }
-  #toc a.toplink {
-    margin: 2px 0.5em 0;
+    & nav {
+      display: none;
+      background-color: var(--background-color);
+      padding: 0.5em 1em 1em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      height: calc(100vh - 48px);
+      border-left: 1px solid #ddd;
+    }
+    &.active {
+      opacity: 1;
+      & nav { display: block; }
+    }
+    /* Make the collapsed ToC header render white on gray also when it's a link */
+    & h2 a,
+    & h2 a:is(:link, :focus, :hover),
+    & a.toplink,
+    & a.toplink:hover {
+      color: white;
+      background-color: #444;
+      text-decoration: none;
+    }
+    & a.toplink {
+      margin: 2px 0.5em 0;
+    }
   }
 }
 
@@ -937,26 +930,26 @@ hr.addr {
     margin: 0;
     padding: 0;
     z-index: 1;
-  }
-  #toc h2 {
-    margin: 0;
-    padding: 0.25em 1em 1em 0;
-  }
-  #toc nav {
-    display: block;
-    height: calc(90vh - 84px);
-    bottom: 0;
-    padding: 0.5em 0 2em;
-    overflow: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
+    & h2 {
+      margin: 0;
+      padding: 0.25em 1em 1em 0;
+    }
+    & nav {
+      display: block;
+      height: calc(90vh - 84px);
+      bottom: 0;
+      padding: 0.5em 0 2em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    & a.toplink {
+      margin: 8px 0.5em 0;
+    }
   }
   img { /* future proofing */
     max-width: 100%;
     height: auto;
-  }
-  #toc a.toplink {
-    margin: 8px 0.5em 0;
   }
 }
 
@@ -972,12 +965,13 @@ hr.addr {
   #n-copyright-notice {
     border-bottom: none;
   }
-  #toc, #n-introduction {
-    page-break-before: always;
-  }
   #toc {
+    page-break-before: always;
     border-top: none;
     padding-top: 0;
+  }
+  #n-introduction {
+    page-break-before: always;
   }
   figure, pre, .vcard {
     page-break-inside: avoid;
@@ -1039,17 +1033,19 @@ hr.addr {
 }
 
 /* SVG Trick: a prefix match works because only black and white are allowed */
-svg :is([stroke="black"], [stroke^="#000"]) {
-  stroke: var(--text-color);
-}
-svg :is([stroke="white"], [stroke^="#fff"]) {
-  stroke: var(--background-color);
-}
-svg :is([fill="black"], [fill^="#000"], :not([fill])) {
-  fill: var(--text-color);
-}
-svg :is([fill="white"], [fill^="#fff"]) {
-  fill: var(--background-color);
+svg {
+  & :is([stroke="black"], [stroke^="#000"]) {
+    stroke: var(--text-color);
+  }
+  & :is([stroke="white"], [stroke^="#fff"]) {
+    stroke: var(--background-color);
+  }
+  & :is([fill="black"], [fill^="#000"], :not([fill], [fill] *)) {
+    fill: var(--text-color);
+  }
+  & :is([fill="white"], [fill^="#fff"]) {
+    fill: var(--background-color);
+  }
 }
 </style>
 
@@ -1059,11 +1055,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">Partial MLS</td>
-<td class="right">May 2026</td>
+<td class="right">November 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Kiefer, et al.</td>
-<td class="center">Expires 8 November 2026</td>
+<td class="center">Expires 22 May 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1076,12 +1072,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ietf-mls-partial-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-05-07" class="published">7 May 2026</time>
+<time datetime="2026-11-18" class="published">18 November 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-11-08">8 November 2026</time></dd>
+<dd class="expires"><time datetime="2027-05-22">22 May 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1113,7 +1109,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <p id="section-abstract-1">The Messaging Layer Security (MLS) protocol provides efficient asynchronous
 group key establishment for large groups with up to thousands of clients. In
 MLS, any member can commit a change to the group, and consequently, all members
-must download, validate, and maintain the full group state, which can incur a
+must download, validate, and maintain the full group state, which can incur
 significant communication and computational costs, especially when joining a
 group. This document defines an MLS extension to support "partial MLS clients" that don't
 undertake these costs. A partial client cannot commit changes to the group, and
@@ -1156,7 +1152,7 @@ lower requirements in terms of download, memory, and processing.<a href="#sectio
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 8 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 22 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1305,7 +1301,7 @@ significant storage and memory requirements once the member has joined.<a href="
 <p id="section-1-2">This document defines an extension to MLS to allow for "partial clients" --
 clients that do not download, validate, or maintain the entire ratchet tree for
 the group. On the one hand, this property allows a partial client to
-participate in the group with much significantly lower communication and
+participate in the group with significantly lower communication and
 computation complexity. On the other hand, without the full ratchet tree, the
 partial client cannot create Commit messages to put changes to the group into
 effect. Partial clients also only have authentication information for the parts
@@ -1314,7 +1310,7 @@ of the tree they download, not the whole group.<a href="#section-1-2" class="pil
 the ratchet tree and its associated algorithms, the key schedule, the secret
 tree, and application message protection. The messages sent and received by
 normal clients in the course of an MLS session are likewise unchanged. With
-proper modifications to the MLS Delivery Service, standard MLS clients can
+proper modifications to the MLS Delivery Service (DS), standard MLS clients can
 participate in a group with partial clients without any modification.<a href="#section-1-3" class="pilcrow">¶</a></p>
 <p id="section-1-4">The only modifications this document makes are to the local state stored at
 partial clients, namely the component of MLS that manages, synchronizes, and
@@ -1344,7 +1340,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
         <dt id="section-2-2.1">Tree slice:</dt>
         <dd style="margin-left: 1.5em" id="section-2-2.2">
           <p id="section-2-2.2.1">A tree slice is the direct path from a leaf node to the root, together with
-the tree hashes on the co-path.<a href="#section-2-2.2.1" class="pilcrow">¶</a></p>
+the tree hashes on the copath.<a href="#section-2-2.2.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-2-2.3">Membership proof:</dt>
@@ -1424,7 +1420,7 @@ only to panelists and administrators, not to other attendees.  Partial MLS allow
 MLS to align with this privacy property.  If attendees join as partial clients,
 they can be provided with membership proofs for attendees whom they are
 authorized to see, and not for others.  Even in settings where attendees can all
-see each others' identities, user interface constraints usually cause only a
+see each other's identities, user interface constraints usually cause only a
 small fraction of the attendee list to be visible at one time, so it is natural
 to load the tree dynamically as the client needs access to the authenticated
 identities of specific other clients.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
@@ -1468,7 +1464,7 @@ authentication and the ability to Commit.<a href="#section-3.2-2" class="pilcrow
 a group, but still possesses the group's secrets, including receiving updated
 secrets as the group evolves. When MLS messages are sent to a partial client,
 they need to be accompanied by annotations that provide the partial client with
-just enough of information about the ratchet tree to process the message. These
+just enough information about the ratchet tree to process the message. These
 annotations can be computed by any party with knowledge of the group's ratchet
 tree, including the committer and sometimes the DS.<a href="#section-4-1" class="pilcrow">¶</a></p>
 <span id="name-overview-of-partial-mls"></span><div id="fig-overview">
@@ -1566,7 +1562,7 @@ path in the Commit.<a href="#section-4-4.2.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-4-4.3">
           <p id="section-4-4.3.1">When messages are sent in the group, e.g., carrying application data,
-they are extended with a membership proofs so that partial clients can
+they are extended with a membership proof so that partial clients can
 authenticate the sender's membership in the group.<a href="#section-4-4.3.1" class="pilcrow">¶</a></p>
 </li>
       </ol>
@@ -1711,7 +1707,7 @@ the ratchet tree specified in the Welcome.<a href="#section-8-4.2.1" class="pilc
 <dt id="section-8-4.3">
 <code>joiner_membership_proof</code>:</dt>
         <dd style="margin-left: 1.5em" id="section-8-4.4">
-          <p id="section-8-4.4.1">A proof of the receipient's membership in the ratchet tree specified in the
+          <p id="section-8-4.4.1">A proof of the recipient's membership in the ratchet tree specified in the
 Welcome.<a href="#section-8-4.4.1" class="pilcrow">¶</a></p>
 </dd>
       <dd class="break"></dd>
@@ -1730,7 +1726,7 @@ reference the same tree.<a href="#section-8-7.1.1" class="pilcrow">¶</a></p>
 <li class="normal" id="section-8-7.2.2.1">
               <p id="section-8-7.2.2.1.1">When verifying the signature on the GroupInfo object, the signature public
 key is taken from the LeafNode in the <code>sender_membership_proof</code> tree slice.
-The <code>signer</code> field of the <code>group_info</code> object <span class="bcp14">MUST</span> be equal to the
+The <code>signer</code> field of the GroupInfo <span class="bcp14">MUST</span> be equal to the
 <code>leaf_index</code> field of the <code>sender_membership_proof</code>.<a href="#section-8-7.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8-7.2.2.2">
@@ -1739,8 +1735,8 @@ check that the <code>tree_hash</code> in the GroupInfo matches the root tree has
 produced by the membership proofs.<a href="#section-8-7.2.2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8-7.2.2.3">
-              <p id="section-8-7.2.2.3.1">The <code>my_leaf</code> value is taken from the the <code>leaf_index</code> field of the
-<code>joiner_membership_proof</code>, instead of found by searching the tree.<a href="#section-8-7.2.2.3.1" class="pilcrow">¶</a></p>
+              <p id="section-8-7.2.2.3.1">The <code>my_leaf</code> value is taken from the <code>leaf_index</code> field of the
+<code>joiner_membership_proof</code>, instead of being found by searching the tree.<a href="#section-8-7.2.2.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </li>
@@ -2043,7 +2039,7 @@ confidentiality guarantees for application messages sent and received within a
 group.<a href="#section-13-3" class="pilcrow">¶</a></p>
 <p id="section-13-4">To verify the security guarantees provided to partial clients, a new security
 analysis was needed. We have analyzed the security of the protocol using two
-verification tools ProVerif and F*. The security analysis, and design of the
+verification tools, ProVerif and F*. The security analysis, and design of the
 security mechanisms, are inspired by work from Alwen et al.
 <span>[<a href="#AHKM22" class="cite xref">AHKM22</a>]</span>.<a href="#section-13-4" class="pilcrow">¶</a></p>
 <p id="section-13-5">Partial MLS preserves the invariants above and thereby all the security goals of
@@ -2083,9 +2079,9 @@ group's symmetric secrets suffices for the latter.<a href="#section-13-7" class=
 <p id="section-13-8">Another technical caveat is that since partial members do not have the full tree,
 they cannot validate the uniqueness of all HPKE and signature keys in the tree,
 as required by RFC MLS. The exact security implications of removing this
-uniqueness check is not clear but is not expected to be significant.  In a group
+uniqueness check are not clear but are not expected to be significant.  In a group
 where full clients are honest, there is no practical difference, since a full
-client will verify that all of the required uniqness properties hold before
+client will verify that all of the required uniqueness properties hold before
 issuing a Commit.  The main risk is that a malicious full client could cause a
 partial client to accept a tree hash representing a tree with duplicate keys.<a href="#section-13-8" class="pilcrow">¶</a></p>
 <div id="metadata-privacy">
@@ -2168,7 +2164,7 @@ been omitted for now in the interest of avoiding changes to full endpoints.<a hr
 <dd class="break"></dd>
 <dt id="I-D.ietf-moq-transport">[I-D.ietf-moq-transport]</dt>
         <dd>
-<span class="refAuthor">Nandakumar, S.</span>, <span class="refAuthor">Vasiliev, V.</span>, <span class="refAuthor">Swett, I.</span>, and <span class="refAuthor">A. Frindell</span>, <span class="refTitle">"Media over QUIC Transport"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-transport-17</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-17">https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-17</a>&gt;</span>. </dd>
+<span class="refAuthor">Nandakumar, S.</span>, <span class="refAuthor">Vasiliev, V.</span>, <span class="refAuthor">Swett, I.</span>, and <span class="refAuthor">A. Frindell</span>, <span class="refTitle">"Media over QUIC Transport"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-moq-transport-23</span>, <time datetime="2026-11-02" class="refDate">2 November 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-23">https://datatracker.ietf.org/doc/html/draft-ietf-moq-transport-23</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.mularczyk-mls-splitcommit">[I-D.mularczyk-mls-splitcommit]</dt>
       <dd>
@@ -4041,7 +4037,7 @@ epochs:
       </h2>
 <ul class="normal">
 <li class="normal" id="appendix-B-1.1">
-          <p id="appendix-B-1.1.1">To realize the completely optimized performance profile discussed on
+          <p id="appendix-B-1.1.1">To realize the completely optimized performance profile discussed in
 <a href="#operational-considerations" class="auto internal xref">Section 12</a>, we should define a version of AnnotatedCommit
 that sends a SplitCommit instead of a normal Commit.<a href="#appendix-B-1.1.1" class="pilcrow">¶</a></p>
 </li>
